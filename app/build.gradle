@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.example.wifirssilogger'
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.wifirssilogger"
@@ -54,7 +54,10 @@ dependencies {
     
     // Compose Compiler
     implementation 'androidx.compose.compiler:compiler:1.5.8'
-    
+
+    //http
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // Debug dependencies
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
