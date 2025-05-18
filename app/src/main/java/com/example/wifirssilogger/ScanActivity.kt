@@ -22,6 +22,9 @@ import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.*
 import java.io.IOException
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 
 
 class ScanActivity : AppCompatActivity() {
@@ -83,7 +86,7 @@ class ScanActivity : AppCompatActivity() {
         // Get connected network info
         val connectionInfo = wifiManager.connectionInfo
         val connectedSSID = connectionInfo.ssid?.removeSurrounding("\"") ?: "Not Connected"
-
+        val hardCodeSSID = "MTA WiFi"
         // Update connected network display
         tvConnectedNetwork.text = "$connectedSSID"
 
@@ -92,7 +95,7 @@ class ScanActivity : AppCompatActivity() {
 
         // Find all BSSIDs with the same SSID
         val sameSSIDResults = results.filter {
-            it.SSID?.removeSurrounding("\"") == connectedSSID
+            it.SSID?.removeSurrounding("\"") == hardCodeSSID
         }
 
         val jsonObject = JSONObject()
@@ -109,31 +112,43 @@ class ScanActivity : AppCompatActivity() {
 
         val JSON = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonObject.toString().toRequestBody(JSON)
+        val temp = "{\"username\": \"Noam\", \"bssids\": {\"a8:f7:d9:5a:4f:81\": -74, \"a8:f7:d9:5a:6a:c1\": -50, \"a8:f7:d9:5a:4f:61\": -86, \"a8:f7:d9:5a:6a:e1\": -42, \"a8:f7:d9:5a:70:51\": -79, \"a8:f7:d9:5a:69:11\": -80, \"a8:f7:d9:e6:c5:21\": -83, \"a8:f7:d9:5a:5b:f2\": -81}}"
 
-//        val request = Request.Builder()
-//            .url("https://yourserver.com/api/location")
-//            .post(requestBody)
-//            .build()
         val request = Request.Builder()
-            .url("http://192.168.1.227:8574/books/health")
+            .url("https://flask-rssi-server-691362032525.us-central1.run.app/predict")
+            //.post(requestBody)
+            .post(temp.toRequestBody(JSON))
             .build()
+//        val request = Request.Builder()
+//            .url("https://flask-rssi-server-691362032525.us-central1.run.app/health")
+//            .addHeader("Accept", "application/json")
+//            .build()
 
         client.newCall(request).enqueue(object : Callback {
             val displayText = StringBuilder()
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                Log.e("HTTP_ERROR", "Network call failed", e)
+                Log.e("HTTP_ERROR", "Network call failed: ${e.localizedMessage}", e)
 
                 runOnUiThread {
                     displayText.clear()
-                    displayText.append("Request failed: ${e.message}\n")
+                    displayText.append("Request failed: ${e.message ?: "Unknown error"}\n")
                     tvResults.text = displayText.toString()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val responseText = if (response.isSuccessful) {
-                    "GET successful: ${response.code} ${response.body?.string()}"
+                    val body = response.body?.use { it.string() } ?: return
+
+                    try {
+                        val json = JsonParser.parseString(body).asJsonObject
+                        val top3 = json.getAsJsonArray("top3")
+                        val vertices = top3.map { it.asJsonObject["vertex"].asString }
+                        vertices.joinToString(" ")  // join with spaces
+                    } catch (e: Exception) {
+                        "JSON parse error"
+                    }
                 } else {
                     "GET failed: ${response.code}"
                 }
@@ -145,7 +160,7 @@ class ScanActivity : AppCompatActivity() {
                 }
 
                 response.close()
-            }
+        }
         })
 
 
