@@ -1,44 +1,47 @@
 import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
 from sklearn.metrics import accuracy_score
-import os
+from collections import defaultdict
 
-# Define the types of data you expect
-types = ["", "average", "median"]
 
-results = []
-
-def load_data(path):
-    df = pd.read_csv(path)
-    df = df.fillna(-100)  # Fill missing RSSI with -100
-    X = df.drop(columns=["vertex"])
-    y = df["vertex"]
+def load_csv(filename, target_column):
+    data = pd.read_csv(filename)
+    X = data.drop(columns=[target_column]).values
+    y = data[target_column].values
     return X, y
 
+def preprocess(X):
+    return pd.DataFrame(X).apply(pd.to_numeric, errors='coerce').fillna(-100).to_numpy()
 
-test_file = f"test.csv"
-# Process each pair
-for dtype in types:
-    train_file = f"train_{dtype}.csv"
-    
-    if os.path.exists(train_file) and os.path.exists(test_file):
-        print(f"Processing: {train_file} + {test_file}")
-        X_train, y_train = load_data(train_file)
-        X_test, y_test = load_data(test_file)
+def predict_knn(train_X, train_y, test_X, k=4):
+    predictions = []
+    for test_vec in test_X:
+        distances = [
+            (train_y[i], np.linalg.norm(test_vec - train_X[i]))
+            for i in range(len(train_X))
+        ]
+        top_k = sorted(distances, key=lambda x: x[1])[:k]
+        
+        # Weighted vote
+        score = defaultdict(float)
+        for vertex, dist in top_k:
+            score[vertex] += 1 / (dist + 1e-6)
+        pred = max(score.items(), key=lambda x: x[1])[0]
+        predictions.append(pred)
+    return predictions
 
-        model = KNeighborsClassifier(n_neighbors=3)
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-        acc = accuracy_score(y_test, y_pred)
+if __name__ == "__main__":
+    target_col = "vertex"
+    train_file = "scan/train.csv"
+    test_file = "scan/test_aligned.csv"
 
-        results.append({
-            "Type": dtype,
-            "Accuracy": round(acc * 100, 2)
-        })
-    else:
-        print(f"Missing files for type: {dtype}")
+    train_X_raw, train_y = load_csv(train_file, target_col)
+    test_X_raw, test_y = load_csv(test_file, target_col)
 
-# Print summary
-print("\n📊 Evaluation Summary:")
-for row in results:
-    print(f"{row['Type'].capitalize():<10} | Accuracy: {row['Accuracy']}%")
+    train_X = preprocess(train_X_raw)
+    test_X = preprocess(test_X_raw)
+
+    # k-NN
+    knn_predictions = predict_knn(train_X, train_y, test_X)
+    for i in range(len(knn_predictions)):
+        print(f"Test sample {i+1} - True vertex: {test_y[i]}, Predicted vertex: {knn_predictions[i]}")

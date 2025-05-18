@@ -8,6 +8,27 @@ def load_csv(filename, target_column):
     y = data[target_column].values
     return X, y
 
+def load_training_data(file_path, target_column="vertex"):
+    df = pd.read_csv(file_path)
+    feature_names = list(df.columns.drop(target_column))
+    X = df[feature_names].apply(pd.to_numeric, errors='coerce').fillna(-100).to_numpy()
+    y = df[target_column].values
+    return X, y, feature_names
+
+def rssi_map_to_vector(rssi_map, feature_names):
+    return np.array([rssi_map.get(name, -100) for name in feature_names])
+
+def predict_by_top3(rssi_map, train_X, train_y, feature_names):
+    test_vec = rssi_map_to_vector(rssi_map, feature_names)
+    distances = [
+        (train_y[i], np.linalg.norm(test_vec - train_X[i]))
+        for i in range(len(train_X))
+    ]
+    top3 = sorted(distances, key=lambda x: x[1])[:3]
+    return top3
+
+
+
 # Predict top 3 closest vertices for each test vector
 def predict_top_3(train_X, train_y, test_X):
     predictions = []
@@ -24,15 +45,6 @@ def predict_top_3(train_X, train_y, test_X):
 
 # Calculate the vertex closest to the average of top 3 predictions
 def predict_closest_to_average(predictions, all_distances):
-    """
-    Calculate the average of the top 3 predictions and return the vertex closest to the average,
-    considering all vertices, not just the top 3.
-    :param predictions: List of top 3 predictions for each test sample.
-                        Each prediction is a list of tuples (vertex, distance).
-    :param all_distances: List of all distances for each test sample.
-                          Each entry is a list of tuples (vertex, distance).
-    :return: List of vertices closest to the calculated average for each test sample.
-    """
     closest_vertices = []
     
     for i, preds in enumerate(predictions):
