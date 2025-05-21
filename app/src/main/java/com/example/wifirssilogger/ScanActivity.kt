@@ -91,8 +91,6 @@ class ScanActivity : AppCompatActivity() {
         tvConnectedNetwork.text = "$connectedSSID"
 
 
-
-
         // Find all BSSIDs with the same SSID
         val sameSSIDResults = results.filter {
             it.SSID?.removeSurrounding("\"") == hardCodeSSID
@@ -112,12 +110,10 @@ class ScanActivity : AppCompatActivity() {
 
         val JSON = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonObject.toString().toRequestBody(JSON)
-        val temp = "{\"username\": \"Noam\", \"bssids\": {\"a8:f7:d9:5a:4f:81\": -74, \"a8:f7:d9:5a:6a:c1\": -50, \"a8:f7:d9:5a:4f:61\": -86, \"a8:f7:d9:5a:6a:e1\": -42, \"a8:f7:d9:5a:70:51\": -79, \"a8:f7:d9:5a:69:11\": -80, \"a8:f7:d9:e6:c5:21\": -83, \"a8:f7:d9:5a:5b:f2\": -81}}"
 
         val request = Request.Builder()
             .url("https://flask-rssi-server-691362032525.us-central1.run.app/predict")
-            //.post(requestBody)
-            .post(temp.toRequestBody(JSON))
+            .post(requestBody)
             .build()
 //        val request = Request.Builder()
 //            .url("https://flask-rssi-server-691362032525.us-central1.run.app/health")
@@ -162,21 +158,6 @@ class ScanActivity : AppCompatActivity() {
                 response.close()
         }
         })
-
-
-//        // Update UI with all BSSIDs for the connected SSID
-//        val displayText = StringBuilder()
-//        displayText.append("Network: $connectedSSID\n\n")
-//        displayText.append("Available Access Points:\n")
-//        displayText.append("------------------------\n")
-//
-//        sameSSIDResults.forEach { result ->
-//            displayText.append("BSSID: ${result.BSSID}\n")
-//            displayText.append("RSSI: ${result.level} dBm\n")
-//            displayText.append("------------------------\n")
-//        }
-//
-//        tvResults.text = displayText.toString()
     }
 
     override fun onDestroy() {
