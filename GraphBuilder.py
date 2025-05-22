@@ -8,6 +8,7 @@ from Utils import Utils
 from GeometryExtractor import GeometryExtractor
 
 
+
 class GraphBuilder:
     def __init__(self, output_file: str, node_size: float, offset_cm: float, scale: float ,roof_area: float):
         self.output_file = output_file
@@ -67,9 +68,15 @@ class GraphBuilder:
                       fontFamily="Dialog", fontSize="12", textColor="#000000").text = label_text
         ET.SubElement(shape, "{http://www.yworks.com/xml/graphml}Shape", type="ellipse")
 
-    def add_seed_nodes(self, norm_positions):
+    def add_seed_nodes(self, norm_positions,color):
         for i, (x, y) in enumerate(norm_positions):
-            self.create_node(f"n{i}", x, y, "#FFCC00", str(i))
+            self.create_node(f"n{i}", x, y, color, str(i))
+            self.queue.append((i, x, y))
+            self.all_positions.add((x, y))
+
+    def add_lobby_nodes(self, norm_positions,color):
+        for i, (x, y) in enumerate(norm_positions):
+            self.create_node(f"n{i}_lobby", x, y, color, str(i))
             self.queue.append((i, x, y))
             self.all_positions.add((x, y))
 
@@ -81,17 +88,26 @@ class GraphBuilder:
             "down": (0, self.offset_px)
         }
 
-        while self.queue:
-            i, x, y = self.queue.popleft()
-            for dir_name, (dx, dy) in directions.items():
-                bx, by = x + dx, y + dy
+        i = 1
+        for bx in range(math.floor(utils.norm_x(utils.x_min_raw)), math.ceil(utils.norm_x(utils.x_max_raw))):
+            for by in range(math.floor(utils.norm_y(utils.y_min_raw)), math.ceil(utils.norm_y(utils.y_max_raw))):
                 if self._is_far_enough(bx, by)\
-                        and geometry_extractor.is_point_inside_geometry(self.roof_area,Point(utils.unnormalize_point(bx,by))):
-                    node_id = f"b{i}_{dir_name}"
+                        and geometry_extractor.is_point_inside_geometry(self.roof_area,Point(utils.unscale(bx,by))):
+                    node_id = f"b{i}_lobby"
                     self.create_node(node_id, bx, by, "#3399FF", node_id)
-                    if (bx, by) not in self.all_positions:
-                        self.all_positions.add((bx, by))
-                        self.queue.append((i, bx, by))
+                    i = i + 1
+
+        # while self.queue:
+        #     i, x, y = self.queue.popleft()
+        #     for dir_name, (dx, dy) in directions.items():
+        #         bx, by = x + dx, y + dy
+        #         if self._is_far_enough(bx, by)\
+        #                 and geometry_extractor.is_point_inside_geometry(self.roof_area,Point(utils.unnormalize_point(bx,by))):
+        #             node_id = f"b{i}_{dir_name}"
+        #             self.create_node(node_id, bx, by, "#3399FF", node_id)
+        #             if (bx, by) not in self.all_positions:
+        #                 self.all_positions.add((bx, by))
+        #                 self.queue.append((i, bx, by))
 
     def _is_far_enough(self, x, y):
         return all(math.hypot(x - px, y - py) >= self.offset_px for (px, py) in self.all_positions)
