@@ -9,15 +9,20 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import com.github.chrisbanes.photoview.PhotoView
+import org.json.JSONObject
 
 // Data class to represent a door
 data class Door(val id: Int, val x: Float, val y: Float, var name: String? = null)
 
 class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     var doors: MutableList<Door> = mutableListOf()
+    var doorsMap: MutableMap<Int,String> = mutableMapOf()
     var referencePhotoView: PhotoView? = null
+    var referenceBtnContinue: Button? = null
     var originalSvgWidth: Int = 800
     var originalSvgHeight: Int = 800
 
@@ -27,10 +32,17 @@ class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         strokeWidth = 4f            // <- Optional: set border thickness
         isAntiAlias = true
     }
+    private val filledPaint = Paint().apply {
+        color = Color.GREEN
+        style = Paint.Style.FILL
+        strokeWidth = 4f
+        isAntiAlias = true
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val photoView = referencePhotoView ?: return
+        val btnContinue = referenceBtnContinue ?: return
         val drawable: Drawable = photoView.drawable ?: return
 
         val matrix = FloatArray(9)
@@ -44,14 +56,18 @@ class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         for (door in doors) {
             val drawX = door.x * scaleX + transX
             val drawY = door.y * scaleY + transY
-            canvas.drawCircle(drawX, drawY, 10f, paint)
-            door.name?.let {
-                canvas.drawText(it, drawX, drawY, Paint().apply {
-                //canvas.drawText(it, drawX + 25, drawY - 10, Paint().apply {
-                    color = Color.BLUE
+            var selectedPaint = paint
+
+            if (!door.name.isNullOrBlank()) {
+                // Draw name and switch to filled green paint
+                canvas.drawText(door.name!!, drawX + 25, drawY - 10, Paint().apply {
+                    color = Color.GREEN
                     textSize = 20f
+                    isAntiAlias = true
                 })
+                selectedPaint = filledPaint
             }
+            canvas.drawCircle(drawX, drawY, 10f, selectedPaint)
         }
     }
 
@@ -90,10 +106,25 @@ class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, att
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
                 door.name = input.text.toString()
+                doorsMap[door.id] = door.name ?: ""
                 invalidate()
                 //TODO update the server
+                checkIfAllDoorsNamed()
             }
             .setNegativeButton("Cancel", null)
         .show()
         }
+
+    private fun generateDoorJson(doors: Map<Int, String>) {
+        val jsonObject = JSONObject()
+        jsonObject.put("newId", doors)
+
+        val jsonString = jsonObject.toString(4) // Pretty print
+
+    }
+
+    private fun checkIfAllDoorsNamed() {
+        val allNamed = doors.all { !it.name.isNullOrBlank() }
+        referenceBtnContinue?.isEnabled = allNamed
+    }
 }

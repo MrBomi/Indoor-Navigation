@@ -14,4 +14,40 @@
         <!-- Default font family -->
         <item name="android:fontFamily">@font/dm_sans</item>
     </style>
+    <!-- Base application theme -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Backgrounds -->
+        <item name="android:windowBackground">@color/background_main</item>
+
+        <!-- Primary colors -->
+        <item name="colorPrimary">@color/button_dark</item>
+        <item name="colorPrimaryVariant">@color/button_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/floorplan_card_bg</item>
+        <item name="colorOnSecondary">@color/text_primary</item>
+
+        <!-- Text -->
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <!-- Button Styling -->
+        <item name="buttonStyle">@style/CustomButton</item>
+
+        <!-- EditText Styling (optional) -->
+        <item name="editTextStyle">@style/CustomEditText</item>
+    </style>
+
+    <!-- Custom Save Button -->
+    <style name="CustomButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:backgroundTint">@color/button_dark</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Custom EditText Style -->
+    <style name="CustomEditText" parent="Widget.MaterialComponents.TextInputEditText.FilledBox">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:backgroundTint">@color/floorplan_card_bg</item>
+    </style>
 </resources>

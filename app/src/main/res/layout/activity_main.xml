@@ -2,25 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center">
+    android:gravity="center"
+    android:orientation="vertical">
 
     <Button
         android:id="@+id/btnNewScan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="170dp"
+        android:layout_height="50dp"
         android:text="New Scan" />
 
     <Button
         android:id="@+id/btnNewMap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="170dp"
+        android:layout_height="50dp"
         android:text="Start Map" />
 
     <Button
-        android:id="@+id/btnRTT"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="START RTT" />
+        android:id="@+id/btnNewPlan"
+        android:layout_width="170dp"
+        android:layout_height="50dp"
+        android:text="Add Floor Plan" />
 
-</LinearLayout> 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="170dp"
+        android:layout_height="50dp"
+        android:text="NAVIGATE" />
+
+</LinearLayout>

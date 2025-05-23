@@ -1,6 +1,5 @@
 package com.example.wifirssilogger
 
-
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -16,7 +15,7 @@ class MainActivity : AppCompatActivity() {
 
         val btnNewScan: Button = findViewById(R.id.btnNewScan)
         val btnNewMap: Button = findViewById(R.id.btnNewMap)
-        val btnNewRTT: Button = findViewById(R.id.btnRTT)
+        val btnNewFloorPlan: Button = findViewById(R.id.btnNewPlan)
 
         btnNewScan.setOnClickListener {
             val intent = Intent(this, ScanActivity::class.java)
@@ -28,7 +27,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent1)
         }
 
-        btnNewRTT.setOnClickListener {
+        btnNewFloorPlan.setOnClickListener {
             val intent2 = Intent(this, FloorPlanMapActivity::class.java)
             startActivity(intent2)
         }
