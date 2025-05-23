@@ -61,7 +61,7 @@
         android:id="@+id/continueButton"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:backgroundTint="#D3D3D3"
+        android:backgroundTint="@color/button_color_selector"
         android:enabled="false"
         android:text="Continue"
         app:layout_constraintBottom_toTopOf="@id/footer"
