@@ -1,8 +1,6 @@
 import ezdxf
-import xml.etree.ElementTree as ET
 import svgwrite
 
-from xml.dom import minidom
 import math
 
 
@@ -32,25 +30,6 @@ class App:
         self.offset_cm = config.get('graph','offset_cm')
         self.doc = ezdxf.readfile(config.get('file','input_name'))
 
-    # def run(self):
-    #     print(f"{self.name} is running with version:{self.version}")
-    #
-    #     extractor = GeometryExtractor(self.doc, self.offset_cm, self.scale)
-    #     x_min_raw, x_max_raw, y_min_raw, y_max_raw = extractor.extract_bounding_box(self.wall_layer)
-    #     utils = Utils(x_min_raw, x_max_raw, y_min_raw, y_max_raw, self.scale)
-    #     doors = extractor.door_positions(self.door_layer)
-    #
-    #     norm_positions = [utils.normalize_point(x, y) for x, y in doors]
-    #
-    #
-    #     roof_area = extractor.create_combined_polygon_from_lines(extractor.load_layer_lines(self.roof_layer))
-    #     builder = GraphBuilder(self.output_file, self.node_size, self.offset_cm, self.scale, roof_area)
-    #     builder.add_seed_nodes(norm_positions)
-    #     builder.expand_nodes(utils, extractor)
-    #     builder.export()
-    #
-    #     print(f"✅ Graph exported to {self.output_file}")
-    #
     # def test(self):
     #     output_dir = "static/output"
     #     svg_input_path = os.path.join(output_dir, "output.svg")
@@ -93,7 +72,7 @@ class App:
     #
     #     plt.show()
 
-    def run1(self):
+    def run(self):
         WIDTH, HEIGHT = 800, 800
         svg_filename = "output.svg"
         json_filename = "doors.json"
@@ -106,13 +85,23 @@ class App:
         extractor = GeometryExtractor(self.doc, self.offset_cm, self.scale)
         wall_lines = extractor.load_layer_lines(self.wall_layer)
         roof_lines = extractor.load_layer_lines(self.roof_layer)
-        door_lines = extractor.load_layer_lines(self.door_layer)
         all_lines = wall_lines + roof_lines
 
         roof_area = extractor.create_combined_polygon_from_lines(extractor.load_layer_lines(self.roof_layer))
         door_coords = extractor.door_positions(self.door_layer)
+        grid = extractor.generate_quantized_grid(roof_area,20)
+        graph = extractor.build_grid_graph(grid,wall_lines,20)
+        start =(470.98468003361734,628.5002916732628) # 17
+        end = (328.7610341041349, 529.1189029742521) # 23
+        path = extractor.astar(graph, start, end)
+        if path:
+            for p in path:
+                print(f"Path step: {p}")
+        else:
+            print("No path found")
+
         #lobby_coords = extractor.lobby_nodes(roof_area,self.roof_layer)
-        lobby_coords = extractor.find_covering_nodes(self.wall_layer,self.roof_layer,self.door_layer,25)
+        lobby_coords = extractor.find_covering_nodes(wall_lines,roof_lines,door_coords,25)
 
 
         door_points = [Point(x, y) for x, y in door_coords]

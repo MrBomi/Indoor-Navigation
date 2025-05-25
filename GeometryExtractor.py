@@ -1,6 +1,6 @@
 # geometry_extractor.py
 import math
-
+import heapq
 import ezdxf
 from shapely.geometry import LineString, MultiPolygon, Point
 from shapely.ops import polygonize, unary_union
@@ -23,13 +23,13 @@ class GeometryExtractor:
         lines = []
 
         for e in self.modelspace.query("LINE"):
-            if e.dxf.layer == layer_name:
+            if e.dxf.layer in layer_name:
                 start = (e.dxf.start.x, e.dxf.start.y)
                 end = (e.dxf.end.x,e.dxf.end.y)
                 lines.append(LineString([start, end]))
 
         for e in self.modelspace.query("LWPOLYLINE"):
-            if e.dxf.layer == layer_name:
+            if e.dxf.layer in layer_name:
                 points = [(pt[0], pt[1]) for pt in e.get_points()]
                 if not e.closed:
                     lines.append(LineString(points))
@@ -41,24 +41,35 @@ class GeometryExtractor:
 
     def door_positions(self, layer_name):
         doors = []
-        for e in self.modelspace.query("LWPOLYLINE"):
-            if e.dxf.layer == layer_name:
-                points = list(e.get_points())
-                if points:
-                    x = sum(p[0] for p in points) / len(points)
-                    y = sum(p[1] for p in points) / len(points)
-                    doors.append((x, y))
-        self.allNodes = doors
+        geometry_types = set()
+
+        for entity in self.modelspace.query(f'*[layer=="{layer_name}"]'):
+            geometry_types.add(entity.dxftype())
+
+        print(f"Geometry types in layer '{layer_name}': {geometry_types}")
+
+        handler_map = {
+            "LWPOLYLINE": self._get_lwpolyline_center,
+            "LINE": self._get_line_center,
+            "CIRCLE": self._get_circle_center,
+            "ARC": self._get_arc_center,
+            "POLYLINE": self._get_polyline_center,
+            "INSERT": self._get_insert_point,
+            # Add more types and handlers here if needed
+        }
+
+        for entity in self.modelspace.query(f'*[layer=="{layer_name}"]'):
+            dtype = entity.dxftype()
+            handler = handler_map.get(dtype)
+            if handler:
+                result = handler(entity)
+                if result:
+                    doors.append(result)
+                    self.allNodes.append(result)
+
         if not doors:
             raise ValueError(f"No door positions found on layer: {layer_name}")
         return doors
-
-    def test (self):
-        for e in self.modelspace.query("LWPOLYLINE"):
-            if(e.dxf.layer == "A-DOOR"):
-                print("Polyline with", len(e.get_points()), "points:")
-                for i, p in enumerate(e.get_points()):
-                    print(f"  Point {i}: {p}")
 
     def create_combined_polygon_from_lines(self, lines):
         merged = unary_union(lines)
@@ -109,7 +120,6 @@ class GeometryExtractor:
         for layer in sorted(line_layers):
             print(f"  - {layer}")
 
-
     def plot_geometry_and_point(self, geometry, point=None, title=""):
         fig, ax = plt.subplots()
 
@@ -134,21 +144,46 @@ class GeometryExtractor:
         offset_px = self.offset_cm * self.scale
         return all(math.hypot(x - px, y - py) >= offset_px for (px, py) in self.allNodes)
 
-    def lobby_nodes(self, roof_area,roof_layer_name):
-        lobby = []
-        x_min, x_max, y_min, y_max = self.extract_bounding_box(roof_layer_name)
-        for bx in range(math.floor(x_min), math.ceil(x_max)):
-            for by in range(math.floor(y_min), math.ceil(y_max)):
-                if self._is_far_enough(bx, by) and self.is_point_inside_geometry(roof_area,Point(bx,by)):
-                    lobby.append((bx,by))
-                    self.allNodes.append((bx,by))
-        if not lobby:
-            print(f"No lobby positions found on layer")
-        return lobby
+    # --- Handlers for entity types ---
+
+    def _get_lwpolyline_center(self, entity):
+        points = list(entity.get_points())
+        if not points:
+            return None
+        x = sum(p[0] for p in points) / len(points)
+        y = sum(p[1] for p in points) / len(points)
+        return (x, y)
+
+    def _get_line_center(self, entity):
+        start = entity.dxf.start
+        end = entity.dxf.end
+        x = (start[0] + end[0]) / 2
+        y = (start[1] + end[1]) / 2
+        return (x, y)
+
+    def _get_circle_center(self, entity):
+        center = entity.dxf.center
+        return (center[0], center[1])
+
+    def _get_arc_center(self, entity):
+        center = entity.dxf.center
+        return (center[0], center[1])
+
+    def _get_polyline_center(self, entity):
+        points = [v.dxf.location for v in entity.vertices]
+        if not points:
+            return None
+        x = sum(p[0] for p in points) / len(points)
+        y = sum(p[1] for p in points) / len(points)
+        return (x, y)
+
+    def _get_insert_point(self, entity):
+        insert = entity.dxf.insert
+        return (insert[0], insert[1])
 
 
 
-    def generate_quantized_grid(self, geometry, spacing):
+    def generate_quantized_grid(self,geometry, spacing):
         minx, miny, maxx, maxy = geometry.bounds
         result = []
         x = round(minx // spacing) * spacing
@@ -161,6 +196,71 @@ class GeometryExtractor:
                 y += spacing
             x += spacing
         return result
+
+    def build_grid_graph(self, grid_points, wall_lines, spacing):
+        from shapely.strtree import STRtree
+        wall_tree = STRtree(wall_lines)
+        graph = defaultdict(list)
+        points_set = set((p.x, p.y) for p in grid_points)
+
+        directions = [
+            (spacing, 0), (-spacing, 0),
+            (0, spacing), (0, -spacing)
+        ]
+
+        for pt in grid_points:
+            for dx, dy in directions:
+                neighbor = (pt.x + dx, pt.y + dy)
+                if neighbor in points_set:
+                    line = LineString([(pt.x, pt.y), neighbor])
+                    obstacles = wall_tree.query(line)
+                    if all(not line.crosses(w) for w in obstacles):
+                        graph[(pt.x, pt.y)].append(neighbor)
+
+        return graph
+
+
+
+    def astar(self, graph, start, goal):
+        open_set = []
+        heapq.heappush(open_set, (0, start))
+        came_from = {}
+        g_score = defaultdict(lambda: float('inf'))
+        g_score[start] = 0
+
+        def heuristic(a, b):
+            return math.hypot(a[0] - b[0], a[1] - b[1])
+
+        while open_set:
+            _, current = heapq.heappop(open_set)
+            if current == goal:
+                path = [current]
+                while current in came_from:
+                    current = came_from[current]
+                    path.append(current)
+                path.reverse()
+                return path
+
+            for neighbor in graph[current]:
+                tentative_g = g_score[current] + heuristic(current, neighbor)
+                if tentative_g < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g
+                    f_score = tentative_g + heuristic(neighbor, goal)
+                    heapq.heappush(open_set, (f_score, neighbor))
+        return None
+
+    def lobby_nodes(self, roof_area,roof_layer_name):
+        lobby = []
+        x_min, x_max, y_min, y_max = self.extract_bounding_box(roof_layer_name)
+        for bx in range(math.floor(x_min), math.ceil(x_max)):
+            for by in range(math.floor(y_min), math.ceil(y_max)):
+                if self._is_far_enough(bx, by) and self.is_point_inside_geometry(roof_area,Point(bx,by)):
+                    lobby.append((bx,by))
+                    self.allNodes.append((bx,by))
+        if not lobby:
+            print(f"No lobby positions found on layer")
+        return lobby
 
     def compute_visibility_map(self, grid_points, door_points, wall_lines, max_distance=500):
         from shapely.geometry.base import BaseGeometry
@@ -223,11 +323,8 @@ class GeometryExtractor:
 
         return door_visibility_map
 
-    def find_covering_nodes(self, wall_layer, roof_layer, door_layer, spacing):
-        wall_lines = self.load_layer_lines(wall_layer)
-        roof_lines = self.load_layer_lines(roof_layer)
+    def find_covering_nodes(self, wall_lines, roof_lines, door_coords, spacing):
         roof_area = self.create_combined_polygon_from_lines(roof_lines)
-        door_coords = self.door_positions(door_layer)
         door_points = [Point(x, y) for x, y in door_coords]
 
         grid_points = self.generate_quantized_grid(roof_area, spacing)
