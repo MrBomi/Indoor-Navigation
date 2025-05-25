@@ -85,14 +85,24 @@ class App:
         extractor = GeometryExtractor(self.doc, self.offset_cm, self.scale)
         wall_lines = extractor.load_layer_lines(self.wall_layer)
         roof_lines = extractor.load_layer_lines(self.roof_layer)
+        roof_area = extractor.create_combined_polygon_from_lines(extractor.load_layer_lines(self.roof_layer))
         all_lines = wall_lines + roof_lines
 
-        roof_area = extractor.create_combined_polygon_from_lines(extractor.load_layer_lines(self.roof_layer))
         door_coords = extractor.door_positions(self.door_layer)
-        grid = extractor.generate_quantized_grid(roof_area,20)
-        graph = extractor.build_grid_graph(grid,wall_lines,20)
-        start =(470.98468003361734,628.5002916732628) # 17
-        end = (328.7610341041349, 529.1189029742521) # 23
+        door_points = [Point(x, y) for x, y in door_coords]
+
+        grid = extractor.generate_quantized_grid(roof_area,50)
+        graph = extractor.build_graph_with_doors(grid,door_points,wall_lines,50)
+
+
+        start = (-388.1676171169763,2238.452643791598) # 13
+        end =(6230.032944379447,810.1576336265814) # 6
+
+        #start =(4351.4499912220235,868.0000274175329)# 17
+        #start = (3094.999236916683,1622.061945066984)#22
+        #end = (4240.0036833095455,1622.061587634103) #21
+        #end = (2680.002006415428,1622.062082592983) # 23
+
         path = extractor.astar(graph, start, end)
         if path:
             for p in path:
@@ -101,11 +111,10 @@ class App:
             print("No path found")
 
         #lobby_coords = extractor.lobby_nodes(roof_area,self.roof_layer)
-        lobby_coords = extractor.find_covering_nodes(wall_lines,roof_lines,door_coords,25)
+        #lobby_coords = extractor.find_covering_nodes(wall_lines,roof_lines,door_coords,25)
 
 
-        door_points = [Point(x, y) for x, y in door_coords]
-        lobby_points = [Point(x, y) for x, y in lobby_coords]
+        #lobby_points = [Point(x, y) for x, y in lobby_coords]
 
         all_x = [pt.x for pt in door_points] + [pt[0] for line in all_lines for pt in list(line.coords)]
         all_y = [pt.y for pt in door_points] + [pt[1] for line in all_lines for pt in list(line.coords)]
@@ -118,18 +127,22 @@ class App:
             return norm_x * WIDTH, (1 - norm_y) * HEIGHT  # flipped Y to match SVG view
 
         norm_positions = [scale(x, y) for x, y in door_coords]
-        norm_lobby = [scale(x, y) for x, y in lobby_coords]
+        #norm_lobby = [scale(x, y) for x, y in lobby_coords]
 
         roof_area = extractor.create_combined_polygon_from_lines(extractor.load_layer_lines(self.roof_layer))
         builder = GraphBuilder(self.output_file, self.node_size, self.offset_cm, self.scale, roof_area)
         builder.add_seed_nodes(norm_positions,"#FFCC00")
-        builder.add_lobby_nodes(norm_lobby,"#3399FF")
+        #builder.add_lobby_nodes(norm_lobby,"#3399FF")
         builder.export()
         print(f"✅ graph written")
 
         dwg = svgwrite.Drawing(svg_path, size=(f"{WIDTH}px", f"{HEIGHT}px"))
         doors_json = []
         lobby_json = []
+
+        scaled_path = [scale(x, y) for x, y in path]
+        dwg.add(dwg.polyline(points=scaled_path, stroke='red', fill='pink', stroke_width=2, id="astar-path"))
+
 
         for line in all_lines:
             coords = [scale(x, y) for x, y in line.coords]
@@ -141,11 +154,11 @@ class App:
             dwg.add(dwg.text(str(i), insert=(x + 6, y - 6), font_size="8px", fill="blue"))
             doors_json.append({"id": i, "x": x, "y": y})
 
-        for i, pt in enumerate(lobby_points):
-            x, y = scale(pt.x, pt.y)
-            dwg.add(dwg.circle(center=(x, y), r=3, fill='red', stroke='none', id=f"lobby-{i}"))
-            dwg.add(dwg.text(str(i), insert=(x + 6, y - 6), font_size="8px", fill="pink"))
-            lobby_json.append({"id": f"{i}_lobby", "x": x, "y": y})
+        # for i, pt in enumerate(lobby_points):
+        #     x, y = scale(pt.x, pt.y)
+        #     dwg.add(dwg.circle(center=(x, y), r=3, fill='red', stroke='none', id=f"lobby-{i}"))
+        #     dwg.add(dwg.text(str(i), insert=(x + 6, y - 6), font_size="8px", fill="pink"))
+        #     lobby_json.append({"id": f"{i}_lobby", "x": x, "y": y})
 
         dwg.save()
 

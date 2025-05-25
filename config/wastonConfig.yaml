@@ -14,7 +14,7 @@ graph:
 
 layers:
   wall_layer:
-    name: A_WALL_PRTN, A_SEEN_LT, A_STRS_RAIL
+    name: A_WALL_PRTN, A_SEEN_LT, A_STRS_RAIL,A_SEEN_MD
     color: "#000000"
     opacity: 0.5
 
