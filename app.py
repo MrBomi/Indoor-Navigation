@@ -14,7 +14,7 @@ import os
 import json
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
-
+import Bitmap as bm
 
 class App:
     def __init__(self, config):
@@ -91,12 +91,15 @@ class App:
         door_coords = extractor.door_positions(self.door_layer)
         door_points = [Point(x, y) for x, y in door_coords]
 
-        grid = extractor.generate_quantized_grid(roof_area,50)
-        graph = extractor.build_graph_with_doors(grid,door_points,wall_lines,50)
+        grid = extractor.generate_quantized_grid(roof_area,12)
+        #graph = extractor.build_graph_with_doors(grid,door_points,wall_lines,40)
+        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines,12)
 
+        #start = (-388.1676171169763,2238.452643791598) # 13
+        #end =(6230.032944379447,810.1576336265814) # 6
 
-        start = (-388.1676171169763,2238.452643791598) # 13
-        end =(6230.032944379447,810.1576336265814) # 6
+        start = (69221951.48698045, 27675262.802139413) #14
+        end = (69221357.78242427, 27677144.81186621) #4
 
         #start =(4351.4499912220235,868.0000274175329)# 17
         #start = (3094.999236916683,1622.061945066984)#22
@@ -140,8 +143,9 @@ class App:
         doors_json = []
         lobby_json = []
 
-        scaled_path = [scale(x, y) for x, y in path]
-        dwg.add(dwg.polyline(points=scaled_path, stroke='red', fill='pink', stroke_width=2, id="astar-path"))
+        if path:
+            scaled_path = [scale(x, y) for x, y in path]
+            dwg.add(dwg.polyline(points=scaled_path, stroke='red', fill='pink', stroke_width=2, id="astar-path"))
 
 
         for line in all_lines:

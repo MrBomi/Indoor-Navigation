@@ -10,6 +10,7 @@ from shapely.strtree import STRtree
 from collections import defaultdict
 from shapely.prepared import prep
 from rtree import index
+from Bitmap import *
 
 
 
@@ -198,117 +199,6 @@ class GeometryExtractor:
             x += spacing
         return result
 
-    def build_grid_graph_fast(self, grid_points, wall_lines,door_points, spacing):
-        graph = defaultdict(list)
-        points_set = set((p.x, p.y) for p in grid_points)
-
-        # ודא שכולם חוקיים
-        wall_lines = [w for w in wall_lines if isinstance(w, LineString) and w.is_valid]
-
-        # הכנה של הקירות מראש עם bounding boxes ו־prepared geometry
-        wall_data = []
-        for wall in wall_lines:
-            bounds = wall.bounds  # (minx, miny, maxx, maxy)
-            prepared = prep(wall)
-            wall_data.append((bounds, prepared))
-
-        directions = [
-            (spacing, 0), (-spacing, 0),
-            (0, spacing), (0, -spacing)
-        ]
-
-        for pt in grid_points:
-            for dx, dy in directions:
-                neighbor = (pt.x + dx, pt.y + dy)
-                if neighbor in points_set:
-                    line = LineString([(pt.x, pt.y), neighbor])
-                    if not line.is_valid or line.is_empty:
-                        continue
-
-                    lxmin, lymin, lxmax, lymax = line.bounds
-                    blocked = False
-
-                    for (wxmin, wymin, wxmax, wymax), wall in wall_data:
-                        # סינון לפי bbox
-                        if (
-                                lxmax < wxmin or lxmin > wxmax or
-                                lymax < wymin or lymin > wymax
-                        ):
-                            continue  # אין סיכוי לחפיפה
-
-                        if wall.crosses(line):  # רק אם יש סיכוי
-                            blocked = True
-                            break
-
-                    if not blocked:
-                        graph[(pt.x, pt.y)].append(neighbor)
-
-        for door in door_points:
-            graph[(door.x, door.y)] = []
-
-            # חבר את הדלת לנקודות גריד קרובות (בטווח סביר)
-            for pt in grid_points:
-                if Point(pt).distance(door) <= spacing * 1.5:  # טווח חיבור
-                    line = LineString([pt, (door.x, door.y)])
-                    if all(not line.crosses(w) for w in wall_lines):
-                        graph[(door.x, door.y)].append(pt)
-                        graph[pt].append((door.x,door.y))
-        return graph
-
-
-
-    # def build_graph_with_doors(self,grid_points, door_points, wall_lines, spacing):
-    #     graph = defaultdict(list)
-    #     epsilon = 10
-    #     points_set = set((p.x, p.y) for p in grid_points)
-    #
-    #     # סינון קירות חוקיים
-    #     wall_lines = [wall.buffer(12.5) for wall in wall_lines]
-    #     combined_wall = unary_union(wall_lines)
-    #     wall_lines = [w for w in wall_lines if isinstance(w, LineString) and w.is_valid]
-    #
-    #     # בניית אינדקס מרחבי לקירות
-    #     rtree_idx = index.Index()
-    #     wall_geoms = []
-    #
-    #     for i, wall in enumerate(wall_lines):
-    #         wall_geoms.append(wall)
-    #         rtree_idx.insert(i, wall.bounds)
-    #
-    #     directions = [(spacing, 0), (-spacing, 0), (0, spacing), (0, -spacing)]
-    #
-    #     # שלב 1: יצירת גרף מנקודות הגריד
-    #     for pt in grid_points:
-    #         for dx, dy in directions:
-    #             neighbor = (pt.x + dx, pt.y + dy)
-    #             if neighbor in points_set:
-    #                 line = LineString([(pt.x, pt.y), neighbor])
-    #                 if not line.is_valid or line.is_empty:
-    #                     continue
-    #
-    #                 possible_hits = list(rtree_idx.intersection(line.bounds))
-    #
-    #                 if not any(line.buffer(epsilon).intersects(wall_geoms[i]) for i in possible_hits):
-    #                     graph[(pt.x, pt.y)].append(neighbor)
-    #
-    #     # שלב 2: הוספת נקודות דלתות וחיבורן לנקודות קרובות
-    #     for door in door_points:
-    #         door_key = (door.x, door.y)
-    #         graph[door_key] = []
-    #
-    #         for pt in grid_points:
-    #             grid_key = (pt.x, pt.y)
-    #             if Point(pt).distance(door) <= spacing * 1.5:
-    #                 line = LineString([pt, door])
-    #                 if not line.is_valid or line.is_empty:
-    #                     continue
-    #
-    #                 possible_hits = list(rtree_idx.intersection(line.bounds))
-    #                 if not any(line.buffer(epsilon).intersects(wall_geoms[i]) for i in possible_hits):
-    #                     graph[door_key].append(grid_key)
-    #                     graph[grid_key].append(door_key)
-    #
-    #     return graph
 
     def build_graph_with_doors(self,grid_points, door_points, wall_lines, spacing, path_width=40, wall_thickness_ratio=0.5):
         graph = defaultdict(list)
@@ -347,6 +237,59 @@ class GeometryExtractor:
                     if not path_shape.intersects(combined_walls):
                         graph[door_key].append(grid_key)
                         graph[grid_key].append(door_key)
+
+        return graph
+
+    def build_graph_with_union_rtree(self,grid_points, door_points, wall_lines, spacing, wall_thickness=10, path_width=20):
+        graph = defaultdict(list)
+        directions = [(spacing, 0), (-spacing, 0), (0, spacing), (0, -spacing)]
+        points_set = set((p.x, p.y) for p in grid_points)
+
+        # שלב 1: Buffer לכל קיר
+        wall_polygons = [wall.buffer(wall_thickness, resolution=1) for wall in wall_lines]
+
+        # שלב 2: Union לסגירת חריצים
+        combined = unary_union(wall_polygons)
+
+        # שלב 3: פיצול ל־Polygons בודדים
+        if combined.geom_type == "Polygon":
+            combined_parts = [combined]
+        elif combined.geom_type == "MultiPolygon":
+            combined_parts = list(combined.geoms)
+        else:
+            combined_parts = []
+
+        # שלב 4: יצירת Rtree לאינדוקס גיאומטרי
+        rtree_idx = index.Index()
+        for i, part in enumerate(combined_parts):
+            rtree_idx.insert(i, part.bounds)
+
+        # שלב 5: בניית גרף על בסיס grid
+        for pt in grid_points:
+            for dx, dy in directions:
+                neighbor = (pt.x + dx, pt.y + dy)
+                if neighbor in points_set:
+                    line = LineString([(pt.x, pt.y), neighbor])
+                    path_shape = line.buffer(path_width / 2)
+                    hits = list(rtree_idx.intersection(path_shape.bounds))
+
+                    if not any(path_shape.intersects(combined_parts[i]) for i in hits):
+                        graph[(pt.x, pt.y)].append(neighbor)
+
+        # שלב 6: חיבור נקודות דלת לגריד
+        for door in door_points:
+            door_key = (door.x, door.y)
+            graph[door_key] = []
+
+            for pt in grid_points:
+                if Point(pt).distance(door) <= spacing * 1.5:
+                    line = LineString([pt, door])
+                    path_shape = line.buffer(path_width / 2)
+                    hits = list(rtree_idx.intersection(path_shape.bounds))
+
+                    if not any(path_shape.intersects(combined_parts[i]) for i in hits):
+                        graph[door_key].append((pt.x, pt.y))
+                        graph[(pt.x, pt.y)].append(door_key)
 
         return graph
 

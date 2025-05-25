@@ -2,7 +2,7 @@ import yaml
 import os
 
 class Config:
-    def __init__(self, path='config/wastonConfig.yaml'):
+    def __init__(self, path='config/config.yaml'):
         with open(path, 'r') as f:
             self._config = yaml.safe_load(f)
 
