@@ -12,16 +12,17 @@ app = Flask(__name__)
 
 
 
-
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
-    
+    rssi_map = data["bssids"]
+
     if not isinstance(data, dict):
         return jsonify({"error": "Invalid input format. Expected a JSON object (map of RSSI)."}), 400
 
     try:
-        top3 = ed.predict_by_top3(data, train_X, train_y, feature_names)
+        
+        top3 = ed.predict_by_top3(rssi_map, train_X, train_y, feature_names)
         response = [
             {"vertex": vertex, "distance": round(dist, 3)}
             for vertex, dist in top3
