@@ -40,6 +40,8 @@
         <activity android:name=".ScanActivity" />
         <activity android:name="com.example.wifimapping.MapActivity" />
         <activity android:name="com.example.FloorplanUI.FloorPlanMapActivity" />
+        <activity android:name="com.example.manageBuildings.ManageActivity" />
+        <activity android:name="com.example.manageBuildings.YamlFormActivity" />
 
     </application>
 

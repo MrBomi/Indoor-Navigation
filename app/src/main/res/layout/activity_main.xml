@@ -24,9 +24,9 @@
         android:text="Add Floor Plan" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btnManage"
         android:layout_width="170dp"
         android:layout_height="50dp"
-        android:text="NAVIGATE" />
+        android:text="Manage" />
 
 </LinearLayout>

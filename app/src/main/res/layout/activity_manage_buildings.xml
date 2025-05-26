@@ -45,13 +45,7 @@
         app:layout_constraintTop_toBottomOf="@id/tvExistingBuildings"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp">
-
-        <!-- Repeatable Item -->
-        <include layout="@layout/item_building" />
-        <include layout="@layout/item_building" />
-        <include layout="@layout/item_building" />
-    </LinearLayout>
+        android:layout_marginTop="8dp"/>
 
     <!-- Add Button -->
     <Button
