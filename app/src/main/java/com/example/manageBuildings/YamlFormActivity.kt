@@ -6,15 +6,20 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.FloorplanUI.Door
+import com.example.FloorplanUI.FloorPlanMapActivity
 import com.example.wifirssilogger.R
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.IOException
+
 
 class YamlFormActivity : AppCompatActivity() {
 
 
+    private val FLOOR_PLAN_REQUEST_CODE = 1001
     private lateinit var precision: EditText
     private lateinit var wallLayer: EditText
     private lateinit var doorLayer: EditText
@@ -48,14 +53,28 @@ class YamlFormActivity : AppCompatActivity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == FLOOR_PLAN_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // Pass the result back to ManageActivity
+            val resultIntent = Intent().apply {
+                putExtra("buildingName", fileName.substringBeforeLast('.'))
+            }
+            setResult(Activity.RESULT_OK, resultIntent)
+            finish() // Closes YamlFormActivity
+        }
+    }
+
+
     private fun buildYaml(): String {
         val fileNameWithoutExtension = fileName.substringBeforeLast('.')
 
         // Auto-fill computed fields
         val inputPath = "${fileNameWithoutExtension}.dxf"
-        val outputPath = "${fileNameWithoutExtension}.graphml"
-        val svgPath = "${fileNameWithoutExtension}.svg"
-        val jsonPath = "${fileNameWithoutExtension}_points.json"
+        val outputPath = "static/output/${fileNameWithoutExtension}.graphml"
+        val svgPath = "static/output/${fileNameWithoutExtension}.svg"
+        val jsonPath = "static/output/${fileNameWithoutExtension}_points.json"
 
         return """
             app:
@@ -99,11 +118,12 @@ class YamlFormActivity : AppCompatActivity() {
         val multipartBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("dwg", fileName, fileRequestBody)
-            .addFormDataPart("config", "config.yaml", yamlRequestBody)
+            .addFormDataPart("yaml", "config.yaml", yamlRequestBody)
+            .addFormDataPart("buildingId", "1") //TODO change it
             .build()
 
         val request = Request.Builder()
-            .url("https://yourserver.com/upload")
+            .url("http://172.20.10.3:8574/building/add") // <- Replace with your server URL
             .post(multipartBody)
             .build()
 
@@ -115,15 +135,53 @@ class YamlFormActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                runOnUiThread {
-                    Toast.makeText(this@YamlFormActivity, "Upload success", Toast.LENGTH_SHORT).show()
 
-                    // Return result to ManageActivity
-                    val resultIntent = Intent().apply {
-                        putExtra("buildingName", fileName.substringBeforeLast('.'))
+                response.use {
+                    if (!response.isSuccessful) {
+                        runOnUiThread {
+                            Toast.makeText(this@YamlFormActivity, "Server error", Toast.LENGTH_SHORT).show()
+                        }
+                        return
                     }
-                    setResult(Activity.RESULT_OK, resultIntent)
-                    finish() // Closes YamlFormActivity and returns
+
+                    val json = JSONObject(response.body!!.string())
+
+                    // 1. Parse doors array into Map<Int, String>
+                    val doorsJson = json.getJSONArray("doors")
+                    val doors = mutableListOf<Door>()
+//                    for (i in 0 until doorsJson.length()) {
+//                        val d = doorsJson.getJSONObject(i)
+//                        doors.add(
+//                            Door(
+//                                id = d.getInt("id"),
+//                                x = d.getDouble("x").toFloat(),
+//                                y = d.getDouble("y").toFloat()
+//                            )
+//                        )
+//                    }
+                    for (i in 0 until 5) {
+                        val d = doorsJson.getJSONObject(i)
+                        doors.add(
+                            Door(
+                                id = d.getInt("id"),
+                                x = d.getDouble("x").toFloat(),
+                                y = d.getDouble("y").toFloat()
+                            )
+                        )
+                    }
+                    // 2. Get the SVG link
+                    val svgLink = json.getString("image_url")
+
+                    // 3. Start FloorPlanMapActivity and pass both
+                    val intent = Intent(this@YamlFormActivity, FloorPlanMapActivity::class.java).apply {
+                        putExtra("svgLink", svgLink)
+                        putExtra("buildingName", fileName.substringBeforeLast('.'))
+
+                        // You must serialize the map to a Bundle or use Serializable
+                        putExtra("doors", ArrayList(doors)) // Serializable version
+                    }
+
+                    startActivityForResult(intent, FLOOR_PLAN_REQUEST_CODE)
                 }
             }
         })

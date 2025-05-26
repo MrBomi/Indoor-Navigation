@@ -26,6 +26,18 @@ class ManageActivity : AppCompatActivity() {
             }
         }
 
+    // File picker that triggers YAML form
+    private val filePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val uri: Uri? = data?.data
+                uri?.let {
+                    handleSelectedFile(it)
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_buildings)
@@ -44,19 +56,6 @@ class ManageActivity : AppCompatActivity() {
         intent.type = "*/*" // You can filter by file type if needed
         filePickerLauncher.launch(intent)
     }
-
-    // File picker that triggers YAML form
-    private val filePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                val uri: Uri? = data?.data
-                uri?.let {
-                    handleSelectedFile(it)
-                }
-            }
-        }
-
 
     private fun addBuildingToList(buildingName: String) {
         val inflater = layoutInflater

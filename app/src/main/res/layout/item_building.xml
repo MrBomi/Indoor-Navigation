@@ -33,9 +33,9 @@
 
         <ImageView
             android:id="@+id/ivMore"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_more"
+            android:layout_width="30dp"
+            android:layout_height="33dp"
+            android:src="@drawable/dots_1"
             app:tint="#888888" />
     </LinearLayout>
 

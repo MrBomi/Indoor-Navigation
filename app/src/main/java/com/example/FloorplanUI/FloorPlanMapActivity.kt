@@ -2,14 +2,18 @@ package com.example.FloorplanUI
 
 import android.graphics.drawable.PictureDrawable
 import android.os.Bundle
-import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.caverock.androidsvg.SVG
-import com.example.wifirssilogger.R
 import com.example.wifirssilogger.databinding.ActivityDoorsSelectBinding
+import com.google.gson.Gson
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.InputStream
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 
 class FloorPlanMapActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDoorsSelectBinding
@@ -20,6 +24,8 @@ class FloorPlanMapActivity : AppCompatActivity() {
         binding = ActivityDoorsSelectBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val svgLink = intent.getStringExtra("svgLink")
+        val doors = intent.getSerializableExtra("doors") as? ArrayList<Door>
 
         // Back button
         binding.backButton.setOnClickListener {
@@ -37,14 +43,100 @@ class FloorPlanMapActivity : AppCompatActivity() {
 
         binding.continueButton.setOnClickListener {
             println("Doors: ${doorsJson}")
+            sendNewDoors(doorsJson)
         }
 
-        // Load SVG and doors
-        val svgData = assets.open("output.svg")
-        val jsonData = assets.open("doors.json")
+        if (svgLink != null) {
+            loadSVGFromUrl(svgLink)
+        }
+        if (doors != null) {
+            binding.doorOverlay.doors = doors
+            binding.doorOverlay.invalidate()
+        }
+    }
+    private fun loadSVGFromUrl(url: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val urlWithParam = "http://172.20.10.3:8574/building/getSvgDirect?svgLink=$url"
+            val request = Request.Builder()
+                .url(urlWithParam) // <- Replace with your server URL
+                .build()
 
-        loadSVGFromAssets(svgData)
-        loadDoorDataFromAssets(jsonData)
+            OkHttpClient().newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    e.printStackTrace() // Log the full error to Logcat
+
+                    runOnUiThread {
+                        Toast.makeText(this@FloorPlanMapActivity, "Network error: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!response.isSuccessful || response.body == null) {
+                        runOnUiThread {
+                            Toast.makeText(this@FloorPlanMapActivity, "Failed to load SVG", Toast.LENGTH_SHORT).show()
+                        }
+                        return
+                    }
+
+                    try {
+                        val inputStream = response.body!!.byteStream()
+                        val svg = SVG.getFromInputStream(inputStream)
+                        val drawable = PictureDrawable(svg.renderToPicture())
+
+                        runOnUiThread {
+                            binding.imageMap.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+                            binding.imageMap.setImageDrawable(drawable)
+                            binding.doorOverlay.invalidate()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        runOnUiThread {
+                            Toast.makeText(this@FloorPlanMapActivity, "Error displaying SVG", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+
+                }
+            })
+
+        }
+    }
+
+    private fun sendNewDoors(doorsJson : MutableMap<Int, String>) {
+        val buildingId = 1 // or any value you need dynamically
+
+        val payload = mapOf(
+            "buildingID" to buildingId,
+            "doors" to doorsJson
+        )
+
+        val gson = Gson()
+        val json = gson.toJson(payload) // Serialize to JSON
+
+        val client = OkHttpClient()
+        val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val body = json.toRequestBody(mediaType)
+
+        val request = Request.Builder()
+            .url("http://172.20.10.3:8574/building/updateDoorsName")
+            .put(body)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@FloorPlanMapActivity, "Failed to send data", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                runOnUiThread {
+                    Toast.makeText(this@FloorPlanMapActivity, "Data sent successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
+                }
+            }
+        })
     }
 
     private fun loadSVGFromAssets(input: InputStream) {

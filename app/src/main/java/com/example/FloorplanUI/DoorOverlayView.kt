@@ -14,9 +14,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import com.github.chrisbanes.photoview.PhotoView
 import org.json.JSONObject
+import java.io.Serializable
 
 // Data class to represent a door
-data class Door(val id: Int, val x: Float, val y: Float, var name: String? = null)
+//data class Door(val id: Int, val x: Float, val y: Float, var name: String? = null)
+data class Door(
+    val id: Int,
+    val x: Float,
+    val y: Float,
+    var name: String? = null
+) : Serializable
 
 class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     var doors: MutableList<Door> = mutableListOf()
@@ -115,13 +122,6 @@ class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         .show()
         }
 
-    private fun generateDoorJson(doors: Map<Int, String>) {
-        val jsonObject = JSONObject()
-        jsonObject.put("newId", doors)
-
-        val jsonString = jsonObject.toString(4) // Pretty print
-
-    }
 
     private fun checkIfAllDoorsNamed() {
         val allNamed = doors.all { !it.name.isNullOrBlank() }
