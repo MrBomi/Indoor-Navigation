@@ -97,18 +97,6 @@ class GraphBuilder:
                     self.create_node(node_id, bx, by, "#3399FF", node_id)
                     i = i + 1
 
-        # while self.queue:
-        #     i, x, y = self.queue.popleft()
-        #     for dir_name, (dx, dy) in directions.items():
-        #         bx, by = x + dx, y + dy
-        #         if self._is_far_enough(bx, by)\
-        #                 and geometry_extractor.is_point_inside_geometry(self.roof_area,Point(utils.unnormalize_point(bx,by))):
-        #             node_id = f"b{i}_{dir_name}"
-        #             self.create_node(node_id, bx, by, "#3399FF", node_id)
-        #             if (bx, by) not in self.all_positions:
-        #                 self.all_positions.add((bx, by))
-        #                 self.queue.append((i, bx, by))
-
     def _is_far_enough(self, x, y):
         return all(math.hypot(x - px, y - py) >= self.offset_px for (px, py) in self.all_positions)
 

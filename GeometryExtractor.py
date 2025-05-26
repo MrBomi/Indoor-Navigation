@@ -84,32 +84,13 @@ class GeometryExtractor:
     def is_point_inside_geometry(self, geometry, point: Point):
         return geometry.contains(point)
 
-    def extract_bounding_box(self, layer_name):
-        x_min, y_min = float('inf'), float('inf')
-        x_max, y_max = float('-inf'), float('-inf')
+    def extract_bounding_box(self,layer ,door_points):
+        all_x = [pt.x for pt in door_points] + [pt[0] for line in layer for pt in list(line.coords)]
+        all_y = [pt.y for pt in door_points] + [pt[1] for line in layer for pt in list(line.coords)]
+        min_x, max_x = min(all_x), max(all_x)
+        min_y, max_y = min(all_y), max(all_y)
 
-        # Include LWPOLYLINE walls
-        for polyline in self.modelspace.query("LWPOLYLINE"):
-            if polyline.dxf.layer == layer_name:
-                for point in polyline.get_points():
-                    x, y = point[0], point[1]
-                    x_min = min(x_min, x)
-                    x_max = max(x_max, x)
-                    y_min = min(y_min, y)
-                    y_max = max(y_max, y)
-
-        # Include LINE walls
-        for line in self.modelspace.query("LINE"):
-            if line.dxf.layer == layer_name:
-                start = line.dxf.start
-                end = line.dxf.end
-                for x, y in [(start.x, start.y), (end.x, end.y)]:
-                    x_min = min(x_min, x)
-                    x_max = max(x_max, x)
-                    y_min = min(y_min, y)
-                    y_max = max(y_max, y)
-
-        return x_min, x_max, y_min, y_max
+        return min_x, max_x, min_y, max_y
 
     def print_all_line_layers(self):
         """Prints all layers that contain LINE or LWPOLYLINE entities."""
@@ -322,17 +303,17 @@ class GeometryExtractor:
                     heapq.heappush(open_set, (f_score, neighbor))
         return None
 
-    def lobby_nodes(self, roof_area,roof_layer_name):
-        lobby = []
-        x_min, x_max, y_min, y_max = self.extract_bounding_box(roof_layer_name)
-        for bx in range(math.floor(x_min), math.ceil(x_max)):
-            for by in range(math.floor(y_min), math.ceil(y_max)):
-                if self._is_far_enough(bx, by) and self.is_point_inside_geometry(roof_area,Point(bx,by)):
-                    lobby.append((bx,by))
-                    self.allNodes.append((bx,by))
-        if not lobby:
-            print(f"No lobby positions found on layer")
-        return lobby
+    # def lobby_nodes(self, roof_area,roof_layer_name):
+    #     lobby = []
+    #     x_min, x_max, y_min, y_max = self.extract_bounding_box(roof_layer_name)
+    #     for bx in range(math.floor(x_min), math.ceil(x_max)):
+    #         for by in range(math.floor(y_min), math.ceil(y_max)):
+    #             if self._is_far_enough(bx, by) and self.is_point_inside_geometry(roof_area,Point(bx,by)):
+    #                 lobby.append((bx,by))
+    #                 self.allNodes.append((bx,by))
+    #     if not lobby:
+    #         print(f"No lobby positions found on layer")
+    #     return lobby
 
     def compute_visibility_map(self, grid_points, door_points, wall_lines, max_distance=500):
         from shapely.geometry.base import BaseGeometry

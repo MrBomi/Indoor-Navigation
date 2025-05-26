@@ -5,6 +5,8 @@ app:
 file:
   input_name: res/waston_floor1.dxf
   output_name: static/output/waston_graph.graphml
+  svg_output_name: static/output/waston_output.svg
+  json_output_name: static/output/waston_points.json
   precision:
 
 graph:

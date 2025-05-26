@@ -5,6 +5,8 @@ app:
 file:
   input_name: res/building001-0_floor2.dxf
   output_name: static/output/test_graph.graphml
+  svg_output_name: static/output/output.svg
+  json_output_name: static/output/points.json
   precision:
 
 graph:

@@ -30,7 +30,7 @@ def is_blocked(x, y, bitmap, minx, miny, spacing):
     row = int((y - miny) // spacing)
     if 0 <= row < bitmap.shape[0] and 0 <= col < bitmap.shape[1]:
         return bitmap[row, col] == 1
-    return True  # נקודה מחוץ לגבולות נחשבת חסומה
+    return True
 
 def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5):
     graph = defaultdict(list)
