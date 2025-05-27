@@ -146,7 +146,8 @@ class App:
             doors_json.append({"id": i, "x": x, "y": y})
 
         svg.save()
-        return ManageBuilding(graph, door_points, wall_lines, svg, utils, self.svg_output_file)
+        #return ManageBuilding(graph, door_points, wall_lines, svg, utils, self.svg_output_file)
+        return ManageBuilding(graph, door_points, svg, self.svg_output_file, utils)
 
 
         # with open(json_path, "w", encoding="utf-8") as f:

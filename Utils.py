@@ -6,6 +6,17 @@ class Utils:
         self.x_min_raw = x_min_raw
 
 
+    def get_x_min_raw(self):
+        return self.x_min_raw
+    
+    def get_x_max_raw(self):
+        return self.x_max_raw
+    
+    def get_y_min_raw(self):
+        return self.y_min_raw
+    
+    def get_y_max_raw(self):
+        return self.y_max_raw
 
     def scale(self,x, y):
         norm_x = (x - self.x_min_raw) / (self.x_max_raw - self.x_min_raw + 1e-6)
@@ -27,3 +38,5 @@ class Utils:
         x = norm_x * (self.x_max_raw - self.x_min_raw + 1e-6) + self.x_min_raw
         y = norm_y * (self.y_max_raw - self.y_min_raw + 1e-6) + self.y_min_raw
         return x, y
+
+

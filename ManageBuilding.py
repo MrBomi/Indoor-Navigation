@@ -8,15 +8,56 @@ import xml.etree.ElementTree as ET
 
 
 class ManageBuilding:
-    def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path):
+    #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
+    def __init__(self, graph, door_points, basic_svg, svg_path, utils):
         self.graph = graph
-        self.door_points = door_points
-        self.wall_lines = wall_lines
+        #self.door_points = door_points
+        #self.wall_lines = wall_lines
         self.basic_svg = basic_svg
-        self.utils = utils
+        #self.utils = utils
+        self.x_min_raw = utils.x_min_raw
+        self.x_max_raw = utils.x_max_raw
+        self.y_min_raw = utils.y_min_raw
+        self.y_max_raw = utils.y_max_raw
         self.svg_path = svg_path
         self.doors_data = {}
         self.output_path = "static/output/output_with_path.svg"
+        self.createDoorsData(door_points)
+
+    def getSvgString(self):
+        if not self.basic_svg:
+            raise ValueError("Basic SVG is not initialized.")
+        return self.basic_svg.tostring()
+    
+    def getGraph(self):
+        if not self.graph:
+            raise ValueError("Graph is not initialized.")
+        return self.graph
+    
+    def getDoorsData(self):
+        if not self.doors_data:
+            raise ValueError("Doors data is not initialized.")
+        return self.doors_data
+    
+    def getXMinRaw(self):
+        if not self.x_min_raw:
+            raise ValueError("X min raw value is not initialized.")
+        return self.x_min_raw
+    
+    def getXMaxRaw(self):
+        if not self.x_max_raw:
+            raise ValueError("X max raw value is not initialized.")
+        return self.x_max_raw
+    
+    def getYMinRaw(self):
+        if not self.y_min_raw:
+            raise ValueError("Y min raw value is not initialized.")
+        return self.y_min_raw
+    
+    def getYMaxRaw(self):
+        if not self.y_max_raw:
+            raise ValueError("Y max raw value is not initialized.")
+        return self.y_max_raw
 
     def find_path(self, start, goal):
         open_set = []
@@ -47,11 +88,29 @@ class ManageBuilding:
                     heapq.heappush(open_set, (f_score, neighbor))
         return None
 
+    def scale(self,x, y):
+        norm_x = (x - self.x_min_raw) / (self.x_max_raw - self.x_min_raw + 1e-6)
+        norm_y = (y - self.y_min_raw) / (self.y_max_raw - self.y_min_raw + 1e-6)
+        return norm_x * 800, (1 - norm_y) * 800  # flipped Y to match SVG view
+
+    def createDoorsData(self, door_points):
+        self.doors_data = {}
+        for i, pt in enumerate(door_points):
+            self.doors_data[i] = Door(i, pt.x, pt.y)
+
+    # def crete_door_json(self):
+    #     doors_json = []
+    #     for i, pt in enumerate(self.door_points):
+    #         self.doors_data[i] = Door(i, pt.x, pt.y)
+    #         #x, y = self.utils.scale(pt.x, pt.y)
+    #         x, y = self.scale(pt.x, pt.y)
+    #         doors_json.append({"id": i, "x": x, "y": y})
+    #     return doors_json
+
     def crete_door_json(self):
         doors_json = []
-        for i, pt in enumerate(self.door_points):
-            self.doors_data[i] = Door(i, pt.x, pt.y)
-            x, y = self.utils.scale(pt.x, pt.y)
+        for i, door in self.doors_data.items():
+            x, y = self.scale(door.getX(), door.getY())
             doors_json.append({"id": i, "x": x, "y": y})
         return doors_json
 
@@ -120,7 +179,7 @@ class ManageBuilding:
     def draw_path(self, path, color='red', stroke_width=2):
         if not self.basic_svg:
             raise ValueError("Basic SVG is not initialized.")
-        scaled_path = [self.utils.scale(x, y) for x, y in path]
+        scaled_path = [self.scale(x, y) for x, y in path]
         drawing = self.copy_svg_drawing(self.basic_svg)
         drawing.add(drawing.polyline(points=scaled_path, stroke=color, stroke_width=stroke_width, fill='none', id="path"))
         drawing.saveas(self.output_path)
@@ -138,3 +197,63 @@ class ManageBuilding:
         path = self.getPath(start, goal)
         self.draw_path(path)
         return self.getSvgDrawing()
+
+def find_path(graph, start, goal):
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    came_from = {}
+    g_score = defaultdict(lambda: float('inf'))
+    g_score[start] = 0
+
+    def heuristic(a, b):
+        return math.hypot(a[0] - b[0], a[1] - b[1])
+
+    while open_set:
+        _, current = heapq.heappop(open_set)
+        if current == goal:
+            path = [current]
+            while current in came_from:
+                current = came_from[current]
+                path.append(current)
+            path.reverse()
+            return path
+
+        for neighbor in graph[current]:
+            tentative_g = g_score[current] + heuristic(current, neighbor)
+            if tentative_g < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g
+                f_score = tentative_g + heuristic(neighbor, goal)
+                heapq.heappush(open_set, (f_score, neighbor))
+    return None
+
+def scale(x, y, x_min_raw, x_max_raw, y_min_raw, y_max_raw):
+    norm_x = (x - x_min_raw) / (x_max_raw - x_min_raw + 1e-6)
+    norm_y = (y - y_min_raw) / (y_max_raw - y_min_raw + 1e-6)
+    return norm_x * 800, (1 - norm_y) * 800  # flipped Y to match SVG view
+
+def draw_path(svg, path, x_min_raw, x_max_raw, y_min_raw, y_max_raw, color='red', stroke_width=2):
+    SVG_NS = "http://www.w3.org/2000/svg"
+    ET.register_namespace("", SVG_NS)
+
+    scaled_path = [scale(x, y, x_min_raw, x_max_raw, y_min_raw, y_max_raw) for x, y in path]
+    svg_root = ET.fromstring(svg)
+
+    points_str = " ".join(f"{x},{y}" for x, y in scaled_path)
+    path_element = ET.Element(f"{{{SVG_NS}}}polyline", {
+        'points': points_str,
+        'stroke': color,
+        'stroke-width': str(stroke_width),
+        'fill': 'none',
+        'id': 'path'
+    })
+
+    svg_root.append(path_element)
+    return ET.tostring(svg_root, encoding='utf-8', xml_declaration=True).decode('utf-8')
+
+
+def get_svg_with_path(svg, graph, start, goal, x_min_raw, x_max_raw, y_min_raw, y_max_raw):
+    path = find_path(graph, start, goal)
+    if path is None:
+        raise ValueError("No path found between the specified points.")
+    return draw_path(svg, path, x_min_raw, x_max_raw, y_min_raw, y_max_raw)

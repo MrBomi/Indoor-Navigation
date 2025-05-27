@@ -29,8 +29,15 @@ class Door:
     def getId(self):
         return self.id
     
+    def getX(self):
+        return self.x
+    
+    def getY(self):
+        return self.y
+    
     def getCoordinates(self):
         return (self.x, self.y)
 
     def getPoint(self):
         return Point(self.x, self.y)
+    

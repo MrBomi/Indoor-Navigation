@@ -6,6 +6,8 @@ from pydantic.fields import defaultdict
 #import configLoader as cl
 from app import App
 import configLoader as cl
+import ManageBuilding as mb
+import server.DataBaseManger.buildingManger as b_db_manger
 
 class mangerBuldings:
     def __init__(self):
@@ -16,6 +18,16 @@ class mangerBuldings:
         config = cl.Config(yaml_path)
         app = App(config, dwg_path)
         self.buildings[buildingID] = app.run()
+        svg = self.buildings[buildingID].getSvgString()
+        graph = self.buildings[buildingID].getGraph()
+        doors = self.buildings[buildingID].getDoorsData()
+        x_min = self.buildings[buildingID].getXMinRaw()
+        x_max = self.buildings[buildingID].getXMaxRaw()
+        y_min = self.buildings[buildingID].getYMinRaw()
+        y_max = self.buildings[buildingID].getYMaxRaw()
+        b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
+        
+        self.buildingsNumber += 1
 
     def getBuildings(self):
         return self.buildings
@@ -25,4 +37,6 @@ class mangerBuldings:
             return self.buildings[buildingID]
         else:
             return None
+    
+    
 
