@@ -18,10 +18,10 @@
         android:text="Start Map" />
 
     <Button
-        android:id="@+id/btnNewPlan"
+        android:id="@+id/btnNavigate"
         android:layout_width="170dp"
         android:layout_height="50dp"
-        android:text="Add Floor Plan" />
+        android:text="Navigate" />
 
     <Button
         android:id="@+id/btnManage"

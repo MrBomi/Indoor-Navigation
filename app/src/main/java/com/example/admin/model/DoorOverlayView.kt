@@ -1,4 +1,4 @@
-package com.example.FloorplanUI
+package com.example.admin.model
 
 import android.content.Context
 import android.graphics.Canvas
@@ -11,13 +11,10 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import com.github.chrisbanes.photoview.PhotoView
-import org.json.JSONObject
 import java.io.Serializable
 
 // Data class to represent a door
-//data class Door(val id: Int, val x: Float, val y: Float, var name: String? = null)
 data class Door(
     val id: Int,
     val x: Float,

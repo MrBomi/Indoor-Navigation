@@ -1,9 +1,8 @@
-package com.example.wifimapping
+package com.example.user.ui
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler

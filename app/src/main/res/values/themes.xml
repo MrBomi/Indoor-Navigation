@@ -10,7 +10,7 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">@color/black</item>
         <!-- Default font family -->
         <item name="android:fontFamily">@font/dm_sans</item>
     </style>
@@ -18,7 +18,8 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Backgrounds -->
         <item name="android:windowBackground">@color/background_main</item>
-
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/black</item>
         <!-- Primary colors -->
         <item name="colorPrimary">@color/button_dark</item>
         <item name="colorPrimaryVariant">@color/button_dark</item>

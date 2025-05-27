@@ -1,29 +1,23 @@
-package com.example.wifirssilogger
+package com.example.user.ui
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.example.wifirssilogger.R
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
-import java.io.FileWriter
-import java.text.SimpleDateFormat
-import java.util.*
 import java.io.IOException
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 
 

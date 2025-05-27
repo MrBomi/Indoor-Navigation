@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#F7F8FA"
     android:padding="16dp"
-    tools:context=".LabelRoomsActivity">
+    tools:context="com.example.admin.ui.ManageActivity">
 
     <!-- Back Arrow -->
     <ImageView
@@ -50,7 +50,7 @@
             android:layout_height="match_parent"
             android:scaleType="fitCenter" />
 
-        <com.example.FloorplanUI.DoorOverlayView
+        <com.example.admin.model.DoorOverlayView
             android:id="@+id/doorOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -64,22 +64,11 @@
         android:backgroundTint="@color/button_color_selector"
         android:enabled="false"
         android:text="Continue"
-        app:layout_constraintBottom_toTopOf="@id/footer"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="8dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteY="635dp" />
 
     <!-- Footer -->
-    <TextView
-        android:id="@+id/footer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="© 2025 Building Admin"
-        android:textSize="12sp"
-        android:textColor="#888888"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="8dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

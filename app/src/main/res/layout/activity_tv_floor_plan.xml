@@ -9,7 +9,7 @@
         android:scaleType="fitCenter" />
 
 
-    <com.example.FloorplanUI.DoorOverlayView
+    <com.example.admin.model.DoorOverlayView
         android:id="@+id/doorOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

@@ -1,12 +1,14 @@
-package com.example.wifirssilogger
+package com.example
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.example.wifimapping.MapActivity
-import com.example.FloorplanUI.FloorPlanMapActivity
-import com.example.manageBuildings.ManageActivity
+import com.example.user.ui.MapActivity
+import com.example.admin.ui.ManageActivity
+import com.example.wifirssilogger.R
+import com.example.user.ui.ScanActivity
+import com.example.user.ui.SelectMapActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,7 +18,7 @@ class MainActivity : AppCompatActivity() {
 
         val btnNewScan: Button = findViewById(R.id.btnNewScan)
         val btnNewMap: Button = findViewById(R.id.btnNewMap)
-        val btnNewFloorPlan: Button = findViewById(R.id.btnNewPlan)
+        val btnNavigate: Button = findViewById(R.id.btnNavigate)
         val btnManageBuildings: Button = findViewById(R.id.btnManage)
 
         btnNewScan.setOnClickListener {
@@ -29,8 +31,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent1)
         }
 
-        btnNewFloorPlan.setOnClickListener {
-            val intent2 = Intent(this, FloorPlanMapActivity::class.java)
+        btnNavigate.setOnClickListener {
+            val intent2 = Intent(this, SelectMapActivity::class.java)
             startActivity(intent2)
         }
         btnManageBuildings.setOnClickListener {

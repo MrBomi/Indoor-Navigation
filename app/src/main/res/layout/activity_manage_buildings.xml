@@ -55,21 +55,9 @@
         android:text="+ Add New Building"
         android:backgroundTint="#0A0A23"
         android:textColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/buildingList"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
-
-    <TextView
-        android:id="@+id/tvFooter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="© 2025 Building Admin"
-        android:textSize="10sp"
-        android:textColor="#A0A0A0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginTop="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
