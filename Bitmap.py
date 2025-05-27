@@ -60,7 +60,7 @@ def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_
                 graph[door_key].append((x, y))
                 graph[(x, y)].append(door_key)
 
-    visualize_bitmap(bitmap)
+    #visualize_bitmap(bitmap)
 
     return graph
 
@@ -72,4 +72,4 @@ def visualize_bitmap(bitmap, title="Bitmap Visualization"):
     plt.ylabel("Rows")
     plt.grid(False)
 
-    plt.show()
+    #plt.show()

@@ -1,7 +1,11 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pyarrow import nulls
 from pydantic.fields import defaultdict
-import configLoader as cl
+#import configLoader as cl
 from app import App
+import configLoader as cl
 
 class mangerBuldings:
     def __init__(self):

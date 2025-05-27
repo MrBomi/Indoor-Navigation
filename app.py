@@ -94,8 +94,8 @@ class App:
         door_coords = extractor.door_positions(self.door_layer)
         door_points = [Point(x, y) for x, y in door_coords]
 
-        grid = extractor.generate_quantized_grid(roof_area,120)
-        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines,120)
+        grid = extractor.generate_quantized_grid(roof_area, 30)
+        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines,30)
 
         #pathFind = ManageBuilding(graph, door_points, wall_lines)
 
