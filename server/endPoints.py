@@ -81,6 +81,17 @@ def send_svg(rel_path = None):
     
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+   
+@app.route('/building/getBuildings', methods=['GET'], endpoint='getBuildings')
+def get_buildings():
+    try:
+        buildings = manger.getBuildings()
+        if not buildings:
+            return jsonify({"message": "No buildings found"}), 404
+        building_list = [{"buildingID": key} for key in buildings.keys()]
+        return jsonify(building_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
