@@ -22,21 +22,36 @@ def add_building():
 
         dwg_file = request.files['dwg']
         yaml_file = request.files['yaml']
-        buildingID = int(request.form.get('buildingId'))
+        buildingID = request.form.get('buildingId')
         yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
         manger.addBuilding(yaml_path, dwg_path, buildingID)
         door_json = manger.getBuilding(buildingID).crete_door_json()
         return jsonify({
-                "image_url": manger.getBuilding(buildingID).getSvgPath(),
+                "buildingId": buildingID, #manger.getBuilding(buildingID).getSvgPath(),
                 "doors": door_json}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+    
+@bp.route('/building/data/get', methods=['GET'], endpoint='getBuildingData')
+def get_building_data():
+    try:
+        buildingId = request.args.get('buildingId')
+        if not buildingId:
+            return jsonify({"error": "Building ID is required"}), 400
+        doors = doors_db_manger.get_all_doors_data(buildingId)
+        return jsonify({
+            "building_id" : str(buildingId),
+            "rooms" : doors
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
 
 @bp.route('/building/updateDoorsName', methods=['PUT'], endpoint='updateDoorName')
 def update_doors_name():
     try:
         doors = request.get_json().get('doors', {})
-        buildingID = int(request.get_json().get('buildingID'))
+        buildingID = str(request.get_json().get('buildingID'))
         if not doors or not buildingID:
             return jsonify({"error": "Doors data or building ID is missing"}), 400
         #manger.getBuilding(buildingID).updateDoorsNames(doors)
@@ -46,10 +61,10 @@ def update_doors_name():
         return jsonify({"error": str(e)}), 400
 
 
-@bp.route('/building/getPath', methods=['GET'], endpoint='getSvgPath')
+@bp.route('/building/route/get', methods=['GET'], endpoint='getSvgPath')
 def get_svg_path():
     try:
-        buildingID = int(request.args.get('buildingID'))
+        buildingID = request.args.get('buildingId')
         start = request.args.get('start')
         goal = request.args.get('goal')
         if not buildingID:
@@ -99,7 +114,7 @@ def send_svg(rel_path = None):
     # except ValueError as e:
     #     return jsonify({"error": str(e)}), 400
     try:
-        buildingID = int(request.args.get('buildingID'))
+        buildingID = request.args.get('buildingId')
         if not buildingID:
             return jsonify({"error": "Building ID is required"}), 400
         svg_data = building_db_manger.get_Svg_data(buildingID)
@@ -112,13 +127,16 @@ def send_svg(rel_path = None):
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
    
-@bp.route('/building/getBuildings', methods=['GET'], endpoint='getBuildings')
+@bp.route('/buildings/get', methods=['GET'], endpoint='getBuildings')
 def get_buildings():
     try:
-        buildings = manger.getBuildings()
-        if not buildings:
+        # buildings = manger.getBuildings()
+        # if not buildings:
+        #     return jsonify({"message": "No buildings found"}), 404
+        #building_list = [{"buildingID": key} for key in buildings.keys()]
+        building_list = building_db_manger.get_all_ids()
+        if not building_list:
             return jsonify({"message": "No buildings found"}), 404
-        building_list = [{"buildingID": key} for key in buildings.keys()]
         return jsonify(building_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

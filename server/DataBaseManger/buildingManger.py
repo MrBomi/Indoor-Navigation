@@ -3,7 +3,7 @@ from server.DataBaseManger.graphManger import save_graph_to_db
 from server.DataBaseManger.doorsManger import save_doors_to_db
 
 
-def add_building(building_id: int, svg_data: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float) -> bool:
+def add_building(building_id: str, svg_data: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float) -> bool:
     try:
         existing = Building.query.get(building_id)
         if existing:
@@ -24,7 +24,7 @@ def add_building(building_id: int, svg_data: str, graph_dict: dict, doors_dict: 
         db.session.rollback()
         return False
     
-def get_Svg_data(building_id: int) -> str:
+def get_Svg_data(building_id: str) -> str:
     try:
         building = Building.query.get(building_id)
         if building:
@@ -35,8 +35,13 @@ def get_Svg_data(building_id: int) -> str:
         print(f"[ERROR] Failed to retrieve SVG data for building {building_id}: {e}")
         return ""
 
-def get_building_by_id(building_id: int):
+def get_building_by_id(building_id: str):
     building = Building.query.get(building_id)
     if not building:
         raise ValueError(f"Building with ID {building_id} not found.")
     return building.x_min, building.x_max, building.y_min, building.y_max
+
+def get_all_ids():
+    buildings = Building.query.all()
+    return [str(building.id) for building in buildings]
+    

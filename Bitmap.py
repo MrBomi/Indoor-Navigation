@@ -47,8 +47,11 @@ def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_
             continue
         for dx, dy in directions:
             x2, y2 = x1 + dx, y1 + dy
+            if(x2 == 69221200.0 and y2== 27675600.0):
+                print(f"Adding neighbor {(x2, y2)}")
             if not is_blocked(x2, y2, bitmap, minx, miny, spacing):
                 graph[(x1, y1)].append((x2, y2))
+                graph[(x2, y2)].append((x1, y1))
 
     # Step 3: Connect doors to grid
     for door in door_points:
