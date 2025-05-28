@@ -66,7 +66,7 @@ class YamlFormViewModel : ViewModel() {
             .setType(MultipartBody.FORM)
             .addFormDataPart("dwg", fileName, fileRequestBody)
             .addFormDataPart("yaml", "config.yaml", yamlRequestBody)
-            .addFormDataPart("buildingId", "2")
+            .addFormDataPart("buildingId", "4")
             .build()
 
         val request = Request.Builder()

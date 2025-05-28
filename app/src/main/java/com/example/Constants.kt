@@ -14,14 +14,14 @@ class Constants {
         const val BASE_DOMAIN: String = "172.20.10.14"
         const val PORT: String = "8574"
 
-        private val BASE_URL: String = "http://$BASE_DOMAIN:$PORT"
+        private const val BASE_URL: String = "http://$BASE_DOMAIN:$PORT"
         private const val CONTEXT_PATH: String = "/IndiGo"
-        private val FULL_SERVER_PATH: String = BASE_URL + CONTEXT_PATH
+        private const val FULL_SERVER_PATH: String = BASE_URL + CONTEXT_PATH
 
 
         val NEW_BUILDING: String = "$FULL_SERVER_PATH/building/add"
 
-        val GET_ALL_BUILDINGS: String = "$FULL_SERVER_PATH/buildings/get"
+        val GET_ALL_BUILDINGS_NAMES: String = "$FULL_SERVER_PATH/buildings/names/get"
         val GET_BUILDING_DATA: String = "$FULL_SERVER_PATH/building/data/get"
 
         val GET_BUILDING_SVG: String = "$FULL_SERVER_PATH/building/svg/get"

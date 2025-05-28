@@ -113,16 +113,16 @@ class DoorOverlayView(context: Context, attrs: AttributeSet) : View(context, att
                 doorsMap[door.id] = door.name ?: ""
                 invalidate()
                 //TODO change the test!
-                TESTcheckIfAllDoorsNamed()
+                TESCheckIfAllDoorsNamed()
                 //checkIfAllDoorsNamed()
             }
             .setNegativeButton("Cancel", null)
         .show()
         }
 
-    private fun TESTcheckIfAllDoorsNamed() {
+    private fun TESCheckIfAllDoorsNamed() {
         val namedDoorsCount = doors.count { !it.name.isNullOrBlank() }
-        referenceBtnContinue?.isEnabled = namedDoorsCount >= 5
+        referenceBtnContinue?.isEnabled = namedDoorsCount >= doors.size - 2
     }
 
     private fun checkIfAllDoorsNamed() {

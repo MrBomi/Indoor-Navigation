@@ -244,7 +244,7 @@ class FloorPlanMapActivity : AppCompatActivity() {
         }
 
         binding.continueButton.setOnClickListener {
-            viewModel.sendNewDoors(2, doorsJson)
+            viewModel.sendNewDoors(4, doorsJson)
         }
 
         doors?.let {
