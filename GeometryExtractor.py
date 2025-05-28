@@ -12,8 +12,6 @@ from shapely.prepared import prep
 from rtree import index
 from Bitmap import *
 
-
-
 class GeometryExtractor:
     def __init__(self, dxf_file, offset_cm, scale):
         self.doc = dxf_file
@@ -165,7 +163,6 @@ class GeometryExtractor:
         insert = entity.dxf.insert
         return (insert[0], insert[1])
 
-
     def generate_quantized_grid(self,geometry, spacing):
         minx, miny, maxx, maxy = geometry.bounds
         result = []
@@ -180,140 +177,17 @@ class GeometryExtractor:
             x += spacing
         return result
 
-
-    def build_graph_with_doors(self,grid_points, door_points, wall_lines, spacing, path_width=40, wall_thickness_ratio=0.5):
-        graph = defaultdict(list)
-        points_set = set((p.x, p.y) for p in grid_points)
-
-        # סינון קירות תקינים
-        wall_lines = [w for w in wall_lines if isinstance(w, LineString) and w.is_valid]
-
-        # הפיכת קירות לפוליגונים עם עובי
-        wall_thickness = spacing * wall_thickness_ratio
-        wall_polygons = [wall.buffer(wall_thickness,resolution=1) for wall in wall_lines]
-        combined_walls = unary_union(wall_polygons)
-
-        directions = [(spacing, 0), (-spacing, 0), (0, spacing), (0, -spacing)]
-
-        # שלב 1: יצירת גרף מהגריד
-        for pt in grid_points:
-            for dx, dy in directions:
-                neighbor = (pt.x + dx, pt.y + dy)
-                if neighbor in points_set:
-                    line = LineString([(pt.x, pt.y), neighbor])
-                    path_shape = line.buffer(path_width / 2)
-                    if not path_shape.intersects(combined_walls):
-                        graph[(pt.x, pt.y)].append(neighbor)
-
-        # שלב 2: חיבור דלתות לגריד
-        for door in door_points:
-            door_key = (door.x, door.y)
-            graph[door_key] = []
-
-            for pt in grid_points:
-                grid_key = (pt.x, pt.y)
-                if Point(pt).distance(door) <= spacing * 1.5:
-                    line = LineString([pt, door])
-                    path_shape = line.buffer(path_width / 2)
-                    if not path_shape.intersects(combined_walls):
-                        graph[door_key].append(grid_key)
-                        graph[grid_key].append(door_key)
-
-        return graph
-
-    def build_graph_with_union_rtree(self,grid_points, door_points, wall_lines, spacing, wall_thickness=10, path_width=20):
-        graph = defaultdict(list)
-        directions = [(spacing, 0), (-spacing, 0), (0, spacing), (0, -spacing)]
-        points_set = set((p.x, p.y) for p in grid_points)
-
-        # שלב 1: Buffer לכל קיר
-        wall_polygons = [wall.buffer(wall_thickness, resolution=1) for wall in wall_lines]
-
-        # שלב 2: Union לסגירת חריצים
-        combined = unary_union(wall_polygons)
-
-        # שלב 3: פיצול ל־Polygons בודדים
-        if combined.geom_type == "Polygon":
-            combined_parts = [combined]
-        elif combined.geom_type == "MultiPolygon":
-            combined_parts = list(combined.geoms)
-        else:
-            combined_parts = []
-
-        # שלב 4: יצירת Rtree לאינדוקס גיאומטרי
-        rtree_idx = index.Index()
-        for i, part in enumerate(combined_parts):
-            rtree_idx.insert(i, part.bounds)
-
-        # שלב 5: בניית גרף על בסיס grid
-        for pt in grid_points:
-            for dx, dy in directions:
-                neighbor = (pt.x + dx, pt.y + dy)
-                if neighbor in points_set:
-                    line = LineString([(pt.x, pt.y), neighbor])
-                    path_shape = line.buffer(path_width / 2)
-                    hits = list(rtree_idx.intersection(path_shape.bounds))
-
-                    if not any(path_shape.intersects(combined_parts[i]) for i in hits):
-                        graph[(pt.x, pt.y)].append(neighbor)
-
-        # שלב 6: חיבור נקודות דלת לגריד
-        for door in door_points:
-            door_key = (door.x, door.y)
-            graph[door_key] = []
-
-            for pt in grid_points:
-                if Point(pt).distance(door) <= spacing * 1.5:
-                    line = LineString([pt, door])
-                    path_shape = line.buffer(path_width / 2)
-                    hits = list(rtree_idx.intersection(path_shape.bounds))
-
-                    if not any(path_shape.intersects(combined_parts[i]) for i in hits):
-                        graph[door_key].append((pt.x, pt.y))
-                        graph[(pt.x, pt.y)].append(door_key)
-
-        return graph
-
-    def astar(self, graph, start, goal):
-        open_set = []
-        heapq.heappush(open_set, (0, start))
-        came_from = {}
-        g_score = defaultdict(lambda: float('inf'))
-        g_score[start] = 0
-
-        def heuristic(a, b):
-            return math.hypot(a[0] - b[0], a[1] - b[1])
-
-        while open_set:
-            _, current = heapq.heappop(open_set)
-            if current == goal:
-                path = [current]
-                while current in came_from:
-                    current = came_from[current]
-                    path.append(current)
-                path.reverse()
-                return path
-
-            for neighbor in graph[current]:
-                tentative_g = g_score[current] + heuristic(current, neighbor)
-                if tentative_g < g_score[neighbor]:
-                    came_from[neighbor] = current
-                    g_score[neighbor] = tentative_g
-                    f_score = tentative_g + heuristic(neighbor, goal)
-                    heapq.heappush(open_set, (f_score, neighbor))
-        return None
-
-    # def lobby_nodes(self, roof_area,roof_layer_name):
-    #     lobby = []
-    #     x_min, x_max, y_min, y_max = self.extract_bounding_box(roof_layer_name)
-    #     for bx in range(math.floor(x_min), math.ceil(x_max)):
-    #         for by in range(math.floor(y_min), math.ceil(y_max)):
-    #             if self._is_far_enough(bx, by) and self.is_point_inside_geometry(roof_area,Point(bx,by)):
-    #                 lobby.append((bx,by))
-    #                 self.allNodes.append((bx,by))
-    #     if not lobby:
-    #         print(f"No lobby positions found on layer")
-    #     return lobby
+    def lobby_nodes(self, roof_area,roof_layer_name):
+        lobby = []
+        x_min, x_max, y_min, y_max = self.extract_bounding_box(roof_layer_name)
+        for bx in range(math.floor(x_min), math.ceil(x_max)):
+            for by in range(math.floor(y_min), math.ceil(y_max)):
+                if self._is_far_enough(bx, by) and self.is_point_inside_geometry(roof_area,Point(bx,by)):
+                    lobby.append((bx,by))
+                    self.allNodes.append((bx,by))
+        if not lobby:
+            print(f"No lobby positions found on layer")
+        return lobby
 
     def compute_visibility_map(self, grid_points, door_points, wall_lines, max_distance=500):
         from shapely.geometry.base import BaseGeometry

@@ -1,5 +1,5 @@
 from configLoader import Config
-from app import App
+from engine.app import App
 
 
 def main():

@@ -259,3 +259,34 @@ def get_svg_with_path(svg, graph, start, goal, x_min_raw, x_max_raw, y_min_raw, 
     if path is None:
         raise ValueError("No path found between the specified points.")
     return draw_path(svg, path, x_min_raw, x_max_raw, y_min_raw, y_max_raw)
+
+def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=4, color='blue'):
+    SVG_NS = "http://www.w3.org/2000/svg"
+    ET.register_namespace("", SVG_NS)
+
+    svg_root = ET.fromstring(svg)
+
+    for door in doors_data:
+        x, y = scale(door["x"], door["y"], x_min_raw, x_max_raw, y_min_raw, y_max_raw)
+        name = door.get("name", f"Door {door['id']}")
+
+        circle = ET.SubElement(svg_root, f"{{{SVG_NS}}}circle", {
+            'cx': str(x),
+            'cy': str(y),
+            'r': str(radius),
+            'fill': color,
+            'stroke': 'black',
+            'stroke-width': '1',
+            'id': f'door-{door["id"]}'
+        })
+
+        text = ET.SubElement(svg_root, f"{{{SVG_NS}}}text", {
+            'x': str(x),
+            'y': str(y - radius - 2),
+            'font-size': "10",
+            'fill': "black",
+            'text-anchor': "middle"
+        })
+        text.text = name
+
+    return ET.tostring(svg_root, encoding='utf-8', xml_declaration=True).decode('utf-8')

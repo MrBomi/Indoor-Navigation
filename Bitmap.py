@@ -74,5 +74,4 @@ def visualize_bitmap(bitmap, title="Bitmap Visualization"):
     plt.xlabel("Columns")
     plt.ylabel("Rows")
     plt.grid(False)
-
-    #plt.show()
+    plt.show()

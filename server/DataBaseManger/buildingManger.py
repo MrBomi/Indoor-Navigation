@@ -44,4 +44,17 @@ def get_building_by_id(building_id: str):
 def get_all_ids():
     buildings = Building.query.all()
     return [str(building.id) for building in buildings]
-    
+
+def update_svg_data(building_id: str, svg_data: str) -> bool:
+    try:
+        building = Building.query.get(building_id)
+        if not building:
+            raise ValueError(f"Building with ID {building_id} not found.")
+        
+        building.svg_data = svg_data
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"[ERROR] Failed to update SVG data for building {building_id}: {e}")
+        db.session.rollback()
+        return False

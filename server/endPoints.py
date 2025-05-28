@@ -56,6 +56,11 @@ def update_doors_name():
             return jsonify({"error": "Doors data or building ID is missing"}), 400
         #manger.getBuilding(buildingID).updateDoorsNames(doors)
         doors_db_manger.update_doors_names(doors, buildingID)
+        doors_data = doors_db_manger.get_all_doors_data(buildingID)
+        svg = building_db_manger.get_Svg_data(buildingID)
+        x_min, x_max, y_min, y_max = building_db_manger.get_building_by_id(buildingID)
+        update_svg = logic.update_svg_door_names(svg, doors_data, x_min, x_max, y_min, y_max)
+        building_db_manger.update_svg_data(buildingID, update_svg)
         return jsonify({"message": "Doors names updated successfully"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
