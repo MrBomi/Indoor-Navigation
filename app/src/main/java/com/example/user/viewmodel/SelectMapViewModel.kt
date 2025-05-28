@@ -1,18 +1,18 @@
 package com.example.user.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.Constants
 import com.example.admin.model.Door
 import com.example.admin.viewmodel.UploadResult
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 
@@ -27,21 +27,47 @@ class SelectMapViewModel : ViewModel() {
     val mapList: LiveData<List<String>> get() = _mapList
 
     init {
+        Log.d("ViewModelInit", "ViewModel created and loadMaps called")
         loadMaps()
     }
 
     private fun loadMaps() {
-        // Example static data
-        //TODO: Replace with actual data loading logic,from server 1-HTTP
-        _mapList.value = listOf("Library", "Main Hall", "Building B", "Floor 3")
+        Log.d("loadMaps", "Sending request to server...")
+
+        val request = Request.Builder()
+            .url("http://172.20.10.14:8574/buildings/get")
+            .build()
+
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("loadMaps", "Failed to fetch maps", e)
+                _mapList.postValue(emptyList())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!it.isSuccessful) {
+                        Log.e("loadMaps", "Failed to fetch maps")
+                        _mapList.postValue(emptyList())
+                        return
+                    }
+
+                    val jsonArray = JSONArray(it.body!!.string())
+                    val mapNames = mutableListOf<String>()
+
+                    for (i in 0 until jsonArray.length()) {
+                        mapNames.add(jsonArray.getString(i))
+                    }
+
+                    _mapList.postValue(mapNames)
+                }
+            }
+        })
     }
 
     fun selectMap(mapName: String) {
-        //TODO sending http to the server get the map data (clean svg) and names of doors/rooms  2-HTTP
-        /// TODO on success go to the map screen
-
         val request = Request.Builder()
-            .url("http://172.20.10.3:8574/building/data/get?buildingName=$mapName")
+            .url("http://172.20.10.14:8574/building/data/get?buildingId=$mapName")
             .build()
 
         OkHttpClient().newCall(request).enqueue(object : Callback {
@@ -57,12 +83,12 @@ class SelectMapViewModel : ViewModel() {
                     }
 
                     val json = JSONObject(it.body!!.string())
-                    val doorsJson = json.getJSONArray("doors")
-                    val doors = mutableListOf<Door>()
+                    val roomsJson = json.getJSONArray("rooms")
+                    val rooms = mutableListOf<Door>()
 
-                    for (i in 0 until doorsJson.length()) {
-                        val d = doorsJson.getJSONObject(i)
-                        doors.add(
+                    for (i in 0 until roomsJson.length()) {
+                        val d = roomsJson.getJSONObject(i)
+                        rooms.add(
                             Door(
                                 id = d.getInt("id"),
                                 x = d.getDouble("x").toFloat(),
@@ -72,8 +98,8 @@ class SelectMapViewModel : ViewModel() {
                         )
                     }
 
-                    val svgLink = json.getString("image_url")
-                    _uploadResult.postValue(Result.success(UploadResult(svgLink, doors)))
+                    val svgLink = json.getString("building_id")
+                    _uploadResult.postValue(Result.success(UploadResult(svgLink, rooms)))
                 }
             }
         })

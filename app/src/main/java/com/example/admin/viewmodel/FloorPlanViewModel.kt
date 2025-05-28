@@ -20,7 +20,7 @@ class FloorPlanViewModel : ViewModel() {
     val uploadResult: LiveData<Result<Unit>> get() = _uploadResult
 
     fun loadSVGFromUrl(svgLink: String) {
-        val url = "http://172.20.10.3:8574/building/getSvgDirect?svgLink=$svgLink"
+        val url = "http://172.20.10.14:8574/building/getSvgDirect?buildingId=$svgLink"
         val request = Request.Builder()
             .url(url)
             .build()
@@ -55,7 +55,7 @@ class FloorPlanViewModel : ViewModel() {
 
         val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         val request = Request.Builder()
-            .url("http://172.20.10.3:8574/building/updateDoorsName")
+            .url("http://172.20.10.14:8574/building/updateDoorsName")
             .put(requestBody)
             .build()
 

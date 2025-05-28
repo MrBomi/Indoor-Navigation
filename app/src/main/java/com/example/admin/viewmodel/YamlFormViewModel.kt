@@ -10,6 +10,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
+
 
 data class UploadResult(val svgUrl: String, val doors: List<Door>)
 
@@ -64,15 +66,21 @@ class YamlFormViewModel : ViewModel() {
             .setType(MultipartBody.FORM)
             .addFormDataPart("dwg", fileName, fileRequestBody)
             .addFormDataPart("yaml", "config.yaml", yamlRequestBody)
-            .addFormDataPart("buildingId", "1")
+            .addFormDataPart("buildingId", "2")
             .build()
 
         val request = Request.Builder()
-            .url("http://172.20.10.3:8574/building/add")
+            .url("http://172.20.10.14:8574/building/add")
             .post(multipartBody)
             .build()
 
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        val client = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 _uploadResult.postValue(Result.failure(e))
             }
@@ -99,7 +107,7 @@ class YamlFormViewModel : ViewModel() {
                         )
                     }
 
-                    val svgLink = json.getString("image_url")
+                    val svgLink = json.getString("buildingId")
                     _uploadResult.postValue(Result.success(UploadResult(svgLink, doors)))
                 }
             }

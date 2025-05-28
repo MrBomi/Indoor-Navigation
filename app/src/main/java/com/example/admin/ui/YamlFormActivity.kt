@@ -119,7 +119,7 @@
 //            .setType(MultipartBody.FORM)
 //            .addFormDataPart("dwg", fileName, fileRequestBody)
 //            .addFormDataPart("yaml", "config.yaml", yamlRequestBody)
-//            .addFormDataPart("buildingId", "1") // TODO: dynamic ID
+//            .addFormDataPart("buildingId", "1")
 //            .build()
 //
 //        val request = Request.Builder()
