@@ -1,12 +1,10 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from pyarrow import nulls
 from pydantic.fields import defaultdict
 #import configLoader as cl
 from engine.app import App
-import configLoader as cl
-import ManageBuilding as mb
+import engine.configLoader as cl
 import server.DataBaseManger.buildingManger as b_db_manger
 
 class mangerBuldings:
@@ -17,7 +15,7 @@ class mangerBuldings:
     def addBuilding(self, yaml_path, dwg_path, buildingID):
         config = cl.Config(yaml_path)
         app = App(config, dwg_path)
-        self.buildings[buildingID] = app.run()
+        self.buildings[buildingID] = app.createFloor()
         svg = self.buildings[buildingID].getSvgString()
         graph = self.buildings[buildingID].getGraph()
         doors = self.buildings[buildingID].getDoorsData()

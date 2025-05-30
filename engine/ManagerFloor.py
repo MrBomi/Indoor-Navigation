@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 
 
 
-class ManageBuilding:
+class ManagerFloor:
     #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
     def __init__(self, graph, door_points, basic_svg, svg_path, utils):
         self.graph = graph

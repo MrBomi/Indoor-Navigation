@@ -10,7 +10,7 @@ from shapely.strtree import STRtree
 from collections import defaultdict
 from shapely.prepared import prep
 from rtree import index
-from Bitmap import *
+from engine.Bitmap import *
 
 class GeometryExtractor:
     def __init__(self, dxf_file, offset_cm, scale):

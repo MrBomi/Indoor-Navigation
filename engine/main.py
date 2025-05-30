@@ -6,7 +6,7 @@ def main():
     config = Config()
     app = App(config)
 
-    app.run()
+    app.createFloor()
     #app.test()
 if __name__ == "__main__":
     main()

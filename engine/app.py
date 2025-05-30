@@ -5,17 +5,17 @@ import math
 
 
 from shapely.geometry import LineString, Point, MultiPolygon
-from GraphBuilder import GraphBuilder
-from Utils import Utils
+from engine.GraphBuilder import GraphBuilder
+from engine.Utils import Utils
 
-from configLoader import Config
-from GeometryExtractor import GeometryExtractor
+from engine.configLoader import Config
+from engine.GeometryExtractor import GeometryExtractor
 import os
 import json
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
-import Bitmap as bm
-from ManageBuilding import ManageBuilding
+import engine.Bitmap as bm
+from engine.ManagerFloor import ManageBuilding
 
 class App:
     def __init__(self, config, dwg_path = None):
@@ -35,7 +35,7 @@ class App:
             dwg_path = config.get('file','input_name')
         self.doc = ezdxf.readfile(dwg_path)
 
-    def run(self):
+    def createFloor(self):
         WIDTH, HEIGHT = 800, 800
         output_dir = os.path.join("static", "output")
         svg_path = os.path.join(output_dir, self.svg_output_file)

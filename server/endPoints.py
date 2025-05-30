@@ -2,7 +2,6 @@ import os
 from flask import Flask, request, jsonify, send_file, Blueprint
 import server.dataBaseManger as dbm
 from server.mangerBuldings import mangerBuldings
-#app = Flask(__name__)
 bp = Blueprint('building', __name__)
 import server.DataBaseManger.buildingManger as building_db_manger
 import server.DataBaseManger.graphManger as graph_db_manger
@@ -10,7 +9,8 @@ import server.DataBaseManger.doorsManger as doors_db_manger
 from io import BytesIO
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import ManageBuilding as logic
+
+import engine.ManagerFloor as logic
 
 manger = mangerBuldings()
 
@@ -146,8 +146,5 @@ def get_buildings():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# if __name__ == '__main__':
-#     app.run(host="0.0.0.0", debug=False, port=8574)
 
 
