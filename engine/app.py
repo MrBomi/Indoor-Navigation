@@ -15,7 +15,7 @@ import json
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
 import engine.Bitmap as bm
-from engine.ManagerFloor import ManageBuilding
+from engine.ManagerFloor import ManagerFloor
 
 class App:
     def __init__(self, config, dwg_path = None):
@@ -52,8 +52,8 @@ class App:
         door_coords = extractor.door_positions(self.door_layer)
         door_points = [Point(x, y) for x, y in door_coords]
 
-        grid = extractor.generate_quantized_grid(roof_area, 30)
-        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines,30)
+        grid = extractor.generate_quantized_grid(roof_area, 40)
+        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines,40)
 
         min_x , max_x , min_y, max_y = extractor.extract_bounding_box(all_lines,door_points)
         utils = Utils(min_x, max_x, min_y, max_y)
@@ -79,4 +79,4 @@ class App:
             doors_json.append({"id": i, "x": x, "y": y})
 
         svg.save()
-        return ManageBuilding(graph, door_points, svg, self.svg_output_file, utils)
+        return ManagerFloor(graph, door_points, svg, self.svg_output_file, utils)

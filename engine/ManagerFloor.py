@@ -1,7 +1,7 @@
 import math
 import heapq
 from collections import defaultdict
-from doors import Door
+from engine.doors import Door
 import svgwrite
 import xml.etree.ElementTree as ET
 
@@ -224,8 +224,6 @@ def find_path(graph, start, goal):
                 came_from[neighbor] = current
                 g_score[neighbor] = tentative_g
                 f_score = tentative_g + heuristic(neighbor, goal)
-                if neighbor == (69221200.0, 27675600.0):
-                    print(f"Adding neighbor {neighbor} with f_score {f_score}")
                 heapq.heappush(open_set, (f_score, neighbor))
     return None
 

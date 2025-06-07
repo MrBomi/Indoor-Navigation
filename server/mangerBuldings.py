@@ -1,7 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from pydantic.fields import defaultdict
+from collections import defaultdict
+
 #import configLoader as cl
 from engine.app import App
 import engine.configLoader as cl
