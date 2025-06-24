@@ -51,7 +51,7 @@ class App:
         all_lines = wall_lines + roof_lines
 
         door_coords = extractor.door_positions(self.door_layer)
-        door_points = [Point(x, y) for x, y in door_coords]
+        door_points = [Point(round(x, 5), round(y, 5)) for x, y in door_coords]
 
         grid = extractor.generate_quantized_grid(roof_area, 40)
         graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines,40)

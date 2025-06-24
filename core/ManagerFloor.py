@@ -1,6 +1,8 @@
 import math
 import heapq
 from collections import defaultdict
+
+from shapely import Point
 from core.doors import Door
 import svgwrite
 import xml.etree.ElementTree as ET
@@ -199,6 +201,8 @@ class ManagerFloor:
         return self.getSvgDrawing()
 
 def find_path(graph, start, goal):
+    start_p = Point(start)
+    check = Point(2680.00200641543, 1622.06208259298)
     open_set = []
     heapq.heappush(open_set, (0, start))
     came_from = {}
