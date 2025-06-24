@@ -69,8 +69,8 @@ class App:
         door_coords = extractor.door_positions(self.door_layer)
         door_points = [Point(x, y) for x, y in door_coords]
 
-        grid = extractor.generate_quantized_grid(roof_area, self.spacing)
-        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines, self.spacing)
+        grid = extractor.generate_quantized_grid(roof_area, 30) #self.spacing)
+        graph = bm.build_graph_with_bitmap(grid,door_points,wall_lines, 30) #self.spacing)
 
         min_x , max_x , min_y, max_y = extractor.extract_bounding_box(all_lines,door_points)
         utils = Utils(min_x, max_x, min_y, max_y)
@@ -83,16 +83,16 @@ class App:
         print(f"✅ graph written")
 
         svg = svgwrite.Drawing(self.svg_output_file, size=(f"{WIDTH}px", f"{HEIGHT}px"))
-        grid_svg = svgwrite.Drawing("static/output/grid_with_building.svg", size=(f"{WIDTH}px", f"{HEIGHT}px"))
+        #grid_svg = svgwrite.Drawing("static/output/grid_with_building.svg", size=(f"{WIDTH}px", f"{HEIGHT}px"))
         doors_json = []
 
         for line in all_lines:
             coords = [utils.scale(x, y) for x, y in line.coords]
             svg.add(svg.polyline(points=coords, stroke='gray', fill='none', stroke_width=0.5))
-            grid_svg.add(grid_svg.polyline(points=coords, stroke='gray', fill='none', stroke_width=0.5))
+            #grid_svg.add(grid_svg.polyline(points=coords, stroke='gray', fill='none', stroke_width=0.5))
 
-        svg_greed = self.createGreedToSvg(graph)
-        self.addGridToSvg(grid_svg, svg_greed, utils, min_x, max_x)
+        #svg_greed = self.createGreedToSvg(graph)
+        #self.addGridToSvg(grid_svg, svg_greed, utils, min_x, max_x)
 
         for i, pt in enumerate(door_points):
             x, y = utils.scale(pt.x, pt.y)
@@ -101,7 +101,7 @@ class App:
             doors_json.append({"id": i, "x": x, "y": y})
 
         svg.save()
-        grid_svg.save()
+        #grid_svg.save()
         return ManagerFloor(graph, door_points, svg, self.svg_output_file, utils)
     
     def addGridToSvg(self, grid_svg, coarse_to_fine, utils, min_x, max_x):

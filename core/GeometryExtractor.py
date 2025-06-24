@@ -163,36 +163,36 @@ class GeometryExtractor:
         insert = entity.dxf.insert
         return (insert[0], insert[1])
 
-    # def generate_quantized_grid(self, geometry, spacing):
-    #     minx, miny, maxx, maxy = geometry.bounds
-    #     result = []
-    #     x = round(minx // spacing) * spacing
-    #     while x <= maxx:
-    #         y = round(miny // spacing) * spacing
-    #         while y <= maxy:
-    #             pt = Point(x, y)
-    #             if geometry.contains(pt):
-    #                 result.append(pt)
-    #             y += spacing
-    #         x += spacing
-    #     return result
-
     def generate_quantized_grid(self, geometry, spacing):
         minx, miny, maxx, maxy = geometry.bounds
         result = []
-
-        
-        x = round((math.floor(minx / spacing)) * spacing, 6)
+        x = round(minx // spacing) * spacing
         while x <= maxx:
-            y = round((math.floor(miny / spacing)) * spacing, 6)
+            y = round(miny // spacing) * spacing
             while y <= maxy:
-                pt = Point(round(x, 6), round(y, 6))
+                pt = Point(x, y)
                 if geometry.contains(pt):
                     result.append(pt)
-                y = round(y + spacing, 6)
-            x = round(x + spacing, 6)
-
+                y += spacing
+            x += spacing
         return result
+
+    # def generate_quantized_grid(self, geometry, spacing):
+    #     minx, miny, maxx, maxy = geometry.bounds
+    #     result = []
+
+        
+    #     x = round((math.floor(minx / spacing)) * spacing, 6)
+    #     while x <= maxx:
+    #         y = round((math.floor(miny / spacing)) * spacing, 6)
+    #         while y <= maxy:
+    #             pt = Point(round(x, 6), round(y, 6))
+    #             if geometry.contains(pt):
+    #                 result.append(pt)
+    #             y = round(y + spacing, 6)
+    #         x = round(x + spacing, 6)
+
+    #     return result
 
     def lobby_nodes(self, roof_area,roof_layer_name):
         lobby = []
