@@ -39,4 +39,3 @@ class Utils:
         y = norm_y * (self.y_max_raw - self.y_min_raw + 1e-6) + self.y_min_raw
         return x, y
 
-

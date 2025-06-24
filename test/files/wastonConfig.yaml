@@ -29,9 +29,3 @@ layers:
     name: A_ROOF
     color: "#00FF00"
     opacity: 0.5
-
-distance:
-  point1: [2791.45, 868.00]
-  point2: [2968.55, 868.00]
-  real_distance: 2.3
-

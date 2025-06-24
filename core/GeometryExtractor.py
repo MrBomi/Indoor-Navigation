@@ -10,7 +10,7 @@ from shapely.strtree import STRtree
 from collections import defaultdict
 from shapely.prepared import prep
 from rtree import index
-from engine.Bitmap import *
+from core.Bitmap import *
 
 class GeometryExtractor:
     def __init__(self, dxf_file, offset_cm, scale):
@@ -163,18 +163,35 @@ class GeometryExtractor:
         insert = entity.dxf.insert
         return (insert[0], insert[1])
 
-    def generate_quantized_grid(self,geometry, spacing):
+    # def generate_quantized_grid(self, geometry, spacing):
+    #     minx, miny, maxx, maxy = geometry.bounds
+    #     result = []
+    #     x = round(minx // spacing) * spacing
+    #     while x <= maxx:
+    #         y = round(miny // spacing) * spacing
+    #         while y <= maxy:
+    #             pt = Point(x, y)
+    #             if geometry.contains(pt):
+    #                 result.append(pt)
+    #             y += spacing
+    #         x += spacing
+    #     return result
+
+    def generate_quantized_grid(self, geometry, spacing):
         minx, miny, maxx, maxy = geometry.bounds
         result = []
-        x = round(minx // spacing) * spacing
+
+        
+        x = round((math.floor(minx / spacing)) * spacing, 6)
         while x <= maxx:
-            y = round(miny // spacing) * spacing
+            y = round((math.floor(miny / spacing)) * spacing, 6)
             while y <= maxy:
-                pt = Point(x, y)
+                pt = Point(round(x, 6), round(y, 6))
                 if geometry.contains(pt):
                     result.append(pt)
-                y += spacing
-            x += spacing
+                y = round(y + spacing, 6)
+            x = round(x + spacing, 6)
+
         return result
 
     def lobby_nodes(self, roof_area,roof_layer_name):

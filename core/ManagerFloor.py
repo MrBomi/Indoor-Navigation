@@ -1,7 +1,7 @@
 import math
 import heapq
 from collections import defaultdict
-from engine.doors import Door
+from core.doors import Door
 import svgwrite
 import xml.etree.ElementTree as ET
 
@@ -24,7 +24,7 @@ class ManagerFloor:
         self.output_path = "static/output/output_with_path.svg"
         self.createDoorsData(door_points)
 
-    def getSvgString(self):
+    def getSvgStrring(self):
         if not self.basic_svg:
             raise ValueError("Basic SVG is not initialized.")
         return self.basic_svg.tostring()

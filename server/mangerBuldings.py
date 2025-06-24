@@ -4,8 +4,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from collections import defaultdict
 
 #import configLoader as cl
-from engine.app import App
-import engine.configLoader as cl
+from core.app import App
+import core.configLoader as cl
 import server.DataBaseManger.buildingManger as b_db_manger
 
 class mangerBuldings:
@@ -17,7 +17,7 @@ class mangerBuldings:
         config = cl.Config(yaml_path)
         app = App(config, dwg_path)
         self.buildings[buildingID] = app.createFloor()
-        svg = self.buildings[buildingID].getSvgString()
+        svg = self.buildings[buildingID].getSvgStrring()
         graph = self.buildings[buildingID].getGraph()
         doors = self.buildings[buildingID].getDoorsData()
         x_min = self.buildings[buildingID].getXMinRaw()
