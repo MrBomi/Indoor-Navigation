@@ -1,3 +1,4 @@
+
 import numpy as np
 from shapely.geometry import Point, LineString
 from collections import defaultdict
@@ -73,3 +74,4 @@ def visualize_bitmap(bitmap, title="Bitmap Visualization"):
     plt.ylabel("Rows")
     plt.grid(False)
     plt.show()
+	
