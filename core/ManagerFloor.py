@@ -25,7 +25,7 @@ class ManagerFloor:
         self.doors_data = {}
         self.output_path = "static/output/output_with_path.svg"
         print(f"ManagerFloor initialized with {len(self.doors_data)} doors and graph with {len(self.graph)} nodes.")
-        self.createDoorsData(door_points)
+        self.createDoorsData(door_points, utils)
 
     def getSvgString(self):
         if not self.basic_svg:
@@ -96,10 +96,10 @@ class ManagerFloor:
         norm_y = (y - self.y_min_raw) / (self.y_max_raw - self.y_min_raw + 1e-6)
         return norm_x * 800, (1 - norm_y) * 800  # flipped Y to match SVG view
 
-    def createDoorsData(self, door_points):
+    def createDoorsData(self, door_points, utils):
         self.doors_data = {}
         for i, pt in enumerate(door_points):
-            self.doors_data[i] = Door(i, pt.x, pt.y)
+            self.doors_data[i] = Door(i, pt.x, pt.y, utils.scale(pt.x, pt.y))
 
     # def crete_door_json(self):
     #     doors_json = []

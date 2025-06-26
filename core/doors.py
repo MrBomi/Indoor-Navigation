@@ -3,10 +3,12 @@ from shapely.geometry import Point
 
 
 class Door:
-    def __init__(self, id, x, y):
+    def __init__(self, id, x, y, scale_p):
         self.id = id
         self.x = x
         self.y = y
+        self.x_scale = scale_p[0]
+        self.y_scale = scale_p[1]
         self.name = ""
 
     def setName(self, name):
@@ -34,6 +36,9 @@ class Door:
     
     def getY(self):
         return self.y
+    
+    def getScaledCoordinates(self):
+        return (self.x_scale, self.y_scale)
     
     def getCoordinates(self):
         return (self.x, self.y)

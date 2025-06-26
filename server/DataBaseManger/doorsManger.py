@@ -18,6 +18,8 @@ def save_doors_to_db(doors_dict: dict, building_id: str) -> bool:
             x=door.getX(),
             y=door.getY(),
             name=door.getName(),
+            scale_x=door.getScaledCoordinates()[0],
+            scale_y=door.getScaledCoordinates()[1],
             building_id=building_id
         )
         db.session.add(db_door)
@@ -56,3 +58,17 @@ def get_all_doors_data(building_id: str) -> dict:
             "name": door.name
         })
     return doors_data
+
+def get_doors_coord(building_id: str) -> dict:
+    doors = Door.query.filter_by(building_id=building_id).all()
+    doors_data = []
+    for door in doors:
+        doors_data.append({
+            "id": putId(door.id),
+            "name": door.name,
+            "scale_coord": (door.scale_x, door.scale_y),
+        })
+    return doors_data
+
+    
+

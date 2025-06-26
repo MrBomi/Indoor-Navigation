@@ -34,8 +34,8 @@ def statr_new_building():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/building/add2', methods=['POST'], endpoint='addBuilding')
-def add_building():
+@bp.route('/building/calibrate', methods=['POST'], endpoint='calibrateBuilding')
+def calibrate_building():
     try:
         # if 'dwg' not in request.files or 'yaml' not in request.files:
         #     return "Both DWG and YAML files are required", 400
@@ -46,7 +46,7 @@ def add_building():
         # buildingID = request.form.get('buildingId')
         #yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
         #manger.addBuilding(yaml_file, dwg_file, buildingID)
-        data = request.get_json(force=True)  # מבטיח parsing גם אם חסר header
+        data = request.get_json(force=True)  
         building_id = data.get('building_id')
         calibration = data.get('calibration_data', {})
         first_point = calibration.get('first_point', {})
@@ -152,4 +152,14 @@ def get_buildings():
         return jsonify({"error": str(e)}), 500
 
 
+@bp.route('/doors/getAll', methods=['GET'], endpoint='getAllDoors')
+def get_all_doors():
+    try:
+        building_id = request.args.get('buildingId')
+        if not building_id:
+            return jsonify({"error": "Building ID is required"}), 400
+        doors = doors_db_manger.get_doors_coord(building_id)
+        return jsonify(doors), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 

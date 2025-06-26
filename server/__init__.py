@@ -17,7 +17,7 @@ def create_app():
         from server.endPoints import bp
         app.register_blueprint(bp)
 
-    manager = mangerBuldings()
-    app.config['MANAGER'] = manager
+        manager = mangerBuldings()
+        app.config['MANAGER'] = manager
 
     return app

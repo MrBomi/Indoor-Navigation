@@ -17,6 +17,8 @@ class Door(db.Model):
     id = db.Column(db.Text, primary_key=True)
     x = db.Column(db.Float)
     y = db.Column(db.Float)
+    scale_x = db.Column(db.Float)
+    scale_y = db.Column(db.Float)
     name = db.Column(db.String)
     building_id = db.Column(db.Text, db.ForeignKey('buildings.id'))
 
