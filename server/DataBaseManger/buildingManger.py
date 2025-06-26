@@ -1,4 +1,5 @@
-from server.models import Building, db
+from server.models import Building
+from server.extensions import db
 from server.DataBaseManger.graphManger import save_graph_to_db
 from server.DataBaseManger.doorsManger import save_doors_to_db
 
@@ -58,3 +59,15 @@ def update_svg_data(building_id: str, svg_data: str) -> bool:
         print(f"[ERROR] Failed to update SVG data for building {building_id}: {e}")
         db.session.rollback()
         return False
+
+def getNewBuildingId():
+    try:
+        last_building = Building.query.order_by(Building.id.desc()).first()
+        if last_building:
+            last_id = int(last_building.id)
+            return str(last_id + 1)
+        else:
+            return "1"  # Start with ID 1 if no buildings exist
+    except Exception as e:
+        print(f"[ERROR] Failed to get new building ID: {e}")
+        return None

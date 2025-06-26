@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 class ManagerFloor:
     #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
-    def __init__(self, graph, door_points, basic_svg, svg_path, utils):
+    def __init__(self, graph, door_points, basic_svg, utils):
         self.graph = graph
         #self.door_points = door_points
         #self.wall_lines = wall_lines
@@ -21,12 +21,13 @@ class ManagerFloor:
         self.x_max_raw = utils.x_max_raw
         self.y_min_raw = utils.y_min_raw
         self.y_max_raw = utils.y_max_raw
-        self.svg_path = svg_path
+        #self.svg_path = svg_path
         self.doors_data = {}
         self.output_path = "static/output/output_with_path.svg"
+        print(f"ManagerFloor initialized with {len(self.doors_data)} doors and graph with {len(self.graph)} nodes.")
         self.createDoorsData(door_points)
 
-    def getSvgStrring(self):
+    def getSvgString(self):
         if not self.basic_svg:
             raise ValueError("Basic SVG is not initialized.")
         return self.basic_svg.tostring()
@@ -109,7 +110,7 @@ class ManagerFloor:
     #         doors_json.append({"id": i, "x": x, "y": y})
     #     return doors_json
 
-    def crete_door_json(self):
+    def create_door_json(self):
         doors_json = []
         for i, door in self.doors_data.items():
             x, y = self.scale(door.getX(), door.getY())

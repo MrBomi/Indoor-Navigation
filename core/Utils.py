@@ -31,11 +31,13 @@ class Utils:
         norm = (y - self.y_min_raw) / (self.y_max_raw - self.y_min_raw + 1e-6)
         return (1 - norm) * 800
 
-    def unscale(self, sx, sy):
-        norm_x = sx / 800
-        norm_y = 1 - (sy / 800)
+    def unscale(self, scaled_x, scaled_y):
+        norm_x = scaled_x / 800
+        norm_y = 1 - (scaled_y / 800)
 
-        x = norm_x * (self.x_max_raw - self.x_min_raw + 1e-6) + self.x_min_raw
-        y = norm_y * (self.y_max_raw - self.y_min_raw + 1e-6) + self.y_min_raw
-        return x, y
+        raw_x = norm_x * (self.x_max_raw - self.x_min_raw + 1e-6) + self.x_min_raw
+        raw_y = norm_y * (self.y_max_raw - self.y_min_raw + 1e-6) + self.y_min_raw
+
+        return raw_x, raw_y
+
 

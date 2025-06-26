@@ -2,9 +2,11 @@ import yaml
 import os
 
 class Config:
-    def __init__(self, path='config/config.yaml'):
-        with open(path, 'r') as f:
-            self._config = yaml.safe_load(f)
+    def __init__(self, yaml_file):#path='config/config.yaml'):
+        # with open(path, 'r') as f:
+        #     self._config = yaml.safe_load(f)
+        self._config = yaml.safe_load(yaml_file.stream)
+
 
     def get(self, *keys):
         data = self._config

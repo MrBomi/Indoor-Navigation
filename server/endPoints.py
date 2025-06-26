@@ -1,5 +1,6 @@
+import io
 import os
-from flask import Flask, request, jsonify, send_file, Blueprint
+from flask import Flask, Response, request, jsonify, send_file, Blueprint, current_app
 import server.dataBaseManger as dbm
 from server.mangerBuldings import mangerBuldings
 bp = Blueprint('building', __name__)
@@ -11,22 +12,57 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import core.ManagerFloor as logic
 
-manger = mangerBuldings()
 
-@bp.route('/building/add', methods=['POST'], endpoint='addBuilding')
-def add_building():
+# @bp.route('/building/new', methods=['POST'], endpoint='newBuilding')
+# def new_building():
+@bp.route('/building/add', methods=['POST'], endpoint='newBuilding')
+def statr_new_building():
     try:
         if 'dwg' not in request.files or 'yaml' not in request.files:
             return "Both DWG and YAML files are required", 400
-
         dwg_file = request.files['dwg']
+        print(type(dwg_file))
+        print(dwg_file.content_type)
         yaml_file = request.files['yaml']
         buildingID = request.form.get('buildingId')
-        yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
-        manger.addBuilding(yaml_path, dwg_path, buildingID)
-        door_json = manger.getBuilding(buildingID).crete_door_json()
+        #yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
+        manger = current_app.config['MANAGER']
+        svg = manger.addBuilding(yaml_file, dwg_file, buildingID)
+        svg_string = svg.tostring()
+        svg_bytes = svg_string.encode('utf-8')
+        return Response(svg_bytes, mimetype='image/svg+xml')
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+@bp.route('/building/add2', methods=['POST'], endpoint='addBuilding')
+def add_building():
+    try:
+        # if 'dwg' not in request.files or 'yaml' not in request.files:
+        #     return "Both DWG and YAML files are required", 400
+        # dwg_file = request.files['dwg']
+        # print(type(dwg_file))
+        # print(dwg_file.content_type)
+        # yaml_file = request.files['yaml']
+        # buildingID = request.form.get('buildingId')
+        #yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
+        #manger.addBuilding(yaml_file, dwg_file, buildingID)
+        data = request.get_json(force=True)  # מבטיח parsing גם אם חסר header
+        building_id = data.get('building_id')
+        calibration = data.get('calibration_data', {})
+        first_point = calibration.get('first_point', {})
+        second_point = calibration.get('second_point', {})
+        real_distance_cm = calibration.get('real_distance_cm')
+        if not building_id or not first_point or not second_point or not real_distance_cm:
+            return jsonify({"error": "Missing required calibration data"}), 400
+        point1 = (first_point.get('x'), first_point.get('y'))
+        point2 = (second_point.get('x'), second_point.get('y'))
+
+        
+        manger = current_app.config['MANAGER']
+        door_json = manger.continueAddBuilding(building_id, point1, point2, real_distance_cm)
+        #door_json = manger.getBuilding(buildingID).crete_door_json()
         return jsonify({
-                "buildingId": buildingID,
+                "buildingId": building_id,
                 "doors": door_json}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

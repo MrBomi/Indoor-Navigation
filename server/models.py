@@ -1,4 +1,4 @@
-from server import db
+from server.extensions import db
 
 class Building(db.Model):
     __tablename__ = 'buildings'

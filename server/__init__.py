@@ -1,8 +1,8 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from server.config import Config
+from server.mangerBuldings import mangerBuldings
+from server.extensions import db
 
-db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -16,5 +16,8 @@ def create_app():
     
         from server.endPoints import bp
         app.register_blueprint(bp)
+
+    manager = mangerBuldings()
+    app.config['MANAGER'] = manager
 
     return app
