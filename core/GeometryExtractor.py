@@ -260,3 +260,5 @@ class GeometryExtractor:
         selected_nodes = self.greedy_cover(visibility_map, total_doors=len(door_points))
 
         return selected_nodes
+    
+        

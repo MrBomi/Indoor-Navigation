@@ -3,7 +3,8 @@ from server.extensions import db
 class Building(db.Model):
     __tablename__ = 'buildings'
     id = db.Column(db.Text, primary_key=True)
-    svg_data = db.Column(db.Text)  
+    svg_data = db.Column(db.Text) 
+    grid_svg = db.Column(db.Text) 
     x_min = db.Column(db.Float)
     x_max = db.Column(db.Float)
     y_min = db.Column(db.Float)

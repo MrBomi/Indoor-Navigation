@@ -35,7 +35,8 @@ def is_blocked(x, y, bitmap, minx, miny, spacing):
 
 def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5):
     graph = defaultdict(list)
-    directions = [(spacing, 0), (-spacing, 0), (0, spacing), (0, -spacing)]
+    directions = [
+    ( spacing,  0), (-spacing,  0), (0,  spacing), (0, -spacing)]
 
     # Step 1: Create bitmap
     wall_thickness = spacing * wall_thickness_ratio

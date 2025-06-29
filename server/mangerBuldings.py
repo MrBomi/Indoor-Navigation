@@ -33,13 +33,14 @@ class mangerBuldings:
         building = self.buildings[buildingID].continueAddBuilding(point1, point2, real_distance_cm)
         del self.buildings[buildingID]
         svg = building.getSvgString()
+        grid_svg = building.getGridSvgString()
         graph = building.getGraph()
         doors = building.getDoorsData()
         x_min = building.getXMinRaw()
         x_max = building.getXMaxRaw()
         y_min = building.getYMinRaw()
         y_max = building.getYMaxRaw()
-        b_db_manger.add_building(str(buildingID), svg, graph, doors, x_min, x_max, y_min, y_max)
+        b_db_manger.add_building(str(buildingID), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
         return building.create_door_json()
 
     def getBuildings(self):

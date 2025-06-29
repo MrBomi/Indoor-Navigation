@@ -92,9 +92,12 @@ def update_doors_name():
         doors_db_manger.update_doors_names(doors, buildingID)
         doors_data = doors_db_manger.get_all_doors_data(buildingID)
         svg = building_db_manger.get_Svg_data(buildingID)
+        grid_svg = building_db_manger.get_grid_svg(buildingID)
         x_min, x_max, y_min, y_max = building_db_manger.get_building_by_id(buildingID)
         update_svg = logic.update_svg_door_names(svg, doors_data, x_min, x_max, y_min, y_max)
+        grid_svg = logic.update_svg_door_names(grid_svg, doors_data, x_min, x_max, y_min, y_max)
         building_db_manger.update_svg_data(buildingID, update_svg)
+        building_db_manger.update_grid_svg_data(buildingID, grid_svg)
         return jsonify({"message": "Doors names updated successfully"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -160,6 +163,24 @@ def get_all_doors():
             return jsonify({"error": "Building ID is required"}), 400
         doors = doors_db_manger.get_doors_coord(building_id)
         return jsonify(doors), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    
+@bp.route('/building/getGridSvg', methods=['GET'], endpoint='getDoorByName')
+def get_grid_svg():
+    try:
+        building_id = request.args.get('buildingId')
+        if not building_id:
+            return jsonify({"error": "Building ID is required"}), 400
+        grid_svg = building_db_manger.get_grid_svg(building_id)
+        if not grid_svg:
+            return jsonify({"error": "Grid SVG not found for the given building ID"}), 404
+        svg_bytes = grid_svg.encode('utf-8')
+        buffer = BytesIO(svg_bytes)
+        buffer.seek(0)
+        return send_file(buffer, mimetype='image/svg+xml', as_attachment=False, download_name=f"building_{building_id}.svg")
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
