@@ -54,3 +54,4 @@ def get_all_buldings():
         for building in buildings
     ]
     return data
+

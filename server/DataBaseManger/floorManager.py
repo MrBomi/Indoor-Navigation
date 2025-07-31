@@ -98,3 +98,6 @@ def getNewBuildingId():
         print(f"[ERROR] Failed to get new building ID: {e}")
         return None
     
+def is_floor_exists(building_id: int, floor_id: int) -> bool:
+    floor = Floor.query.get((floor_id, building_id))
+    return floor is not None

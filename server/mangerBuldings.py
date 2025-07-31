@@ -17,6 +17,8 @@ class mangerBuldings:
         self.lock = threading.Lock()
 
     def addBuilding(self, yaml_file, dwg_file, buildingID, floorId):
+        if b_db_manger.is_floor_exists(int(buildingID), int(floorId)):
+            raise ValueError(f"Floor with ID {floorId} already exists in building {buildingID}.")
         config = cl.Config(yaml_file)
         key = (int(buildingID), int(floorId))
         self.buildings[key] = App(config, dwg_file)
