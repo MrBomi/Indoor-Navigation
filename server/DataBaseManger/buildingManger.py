@@ -17,6 +17,7 @@ def get_new_buildingId():
 
 def add_building(building_name: str, building_city: str,building_address: str) -> bool:
     try:
+        print(f"[INFO] Adding building: {building_name}, City: {building_city}, Address: {building_address}")
         building_id = get_new_buildingId()
         if not building_id:
             return False
