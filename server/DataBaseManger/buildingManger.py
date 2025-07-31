@@ -55,3 +55,7 @@ def get_all_buldings():
     ]
     return data
 
+def is_building_exists(building_id: int) -> bool:
+    # Check if a building with the given ID exists in the database
+    return Building.query.get(building_id) is not None
+

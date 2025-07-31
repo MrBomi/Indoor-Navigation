@@ -8,16 +8,19 @@ import threading
 from core.app import App
 from core.ManagerFloor import ManagerFloor
 import core.configLoader as cl
-import server.DataBaseManger.floorManager as b_db_manger
+import server.DataBaseManger.floorManager as floor_db_manger
+import server.DataBaseManger.buildingManger as building_db_manger
 
 class mangerBuldings:
     def __init__(self):
         self.buildings = defaultdict()
-        self.buildingsNumber = b_db_manger.getNewBuildingId()
+        self.buildingsNumber = floor_db_manger.getNewBuildingId()
         self.lock = threading.Lock()
 
     def addBuilding(self, yaml_file, dwg_file, buildingID, floorId):
-        if b_db_manger.is_floor_exists(int(buildingID), int(floorId)):
+        if not building_db_manger.is_building_exists(int(buildingID)):
+            raise ValueError(f"Building with ID {buildingID} does not exist.")
+        if floor_db_manger.is_floor_exists(int(buildingID), int(floorId)):
             raise ValueError(f"Floor with ID {floorId} already exists in building {buildingID}.")
         config = cl.Config(yaml_file)
         key = (int(buildingID), int(floorId))
@@ -43,7 +46,7 @@ class mangerBuldings:
         x_max = building.getXMaxRaw()
         y_min = building.getYMinRaw()
         y_max = building.getYMaxRaw()
-        b_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
+        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
         return building.create_door_json()
 
     def getBuildings(self):
