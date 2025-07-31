@@ -1,7 +1,7 @@
 import io
 import os
 from flask import Flask, Response, request, jsonify, send_file, Blueprint, current_app
-import server.dataBaseManger as dbm
+#import server.dataBaseManger as dbm
 from server.mangerBuldings import mangerBuldings
 bp = Blueprint('building', __name__)
 import server.DataBaseManger.buildingManger as building_db_manger

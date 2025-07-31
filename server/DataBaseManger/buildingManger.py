@@ -14,18 +14,18 @@ def get_new_buildingId():
         print(f"[ERROR] Failed to get new building ID: {e}")
         return None
 
-def add_building(name: str, city: str, address: str) -> bool:
+def add_building(building_name: str, building_city: str,building_address: str) -> bool:
     try:
         building_id = get_new_buildingId()
         if not building_id:
             return False
         # Check if the name already exists
-        existing = Building.query.filter_by(name=name).first()
-        if existing:
-            # Building already exists, do not add again
+        existing = Building.query.filter_by(name=building_name).first()
+        if existing is not None:
+            print(f"[ERROR] Building with name '{building_name}' already exists.")
             return False
 
-        building = Building(id=building_id, city=city, address=address)
+        building = Building(id=building_id, name=building_name, city=building_city, address=building_address)
         db.session.add(building)
         db.session.commit()
         return True

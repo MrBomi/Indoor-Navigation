@@ -2,8 +2,9 @@ from server.extensions import db
 
 
 class Building(db.Model):
-    _tablename_ = 'buildings'
+    __tablename__ = 'buildings'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
     city = db.Column(db.String(20))
     address = db.Column(db.String(100))
 
