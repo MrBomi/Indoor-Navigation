@@ -122,6 +122,7 @@ class ManagerFloor:
         for i, door in self.doors_data.items():
             x, y = self.scale(door.getX(), door.getY())
             doors_json.append({"id": i, "x": x, "y": y})
+            print(f"Door {i}: x={x} ({type(x)}), y={y} ({type(y)})", flush=True)
         return doors_json
 
     def getSvgPath(self):

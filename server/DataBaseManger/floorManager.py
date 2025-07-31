@@ -10,18 +10,38 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
         if existing:
             db.session.delete(existing)
             db.session.commit()
+            print("ℹ Deleted existing floor", flush=True)
 
-        floor = Floor(id=floor_id, svg_data=svg_data, grid_svg=grid_svg, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, building_id=building_id)
+        floor = Floor(
+            id=floor_id,
+            svg_data=svg_data,
+            grid_svg=grid_svg,
+            x_min=x_min, x_max=x_max,
+            y_min=y_min, y_max=y_max,
+            building_id=building_id
+        )
         db.session.add(floor)
-        db.session.commit() 
+        db.session.commit()
+        print("✅ Floor added to DB", flush=True)
 
-        graph_ok = save_graph_to_db(building_id, floor_id, graph_dict)
-        doors_ok = save_doors_to_db(doors_dict, building_id, floor_id)
+        try:
+            graph_ok = save_graph_to_db(building_id, floor_id, graph_dict)
+            print("✅ Graph saved", flush=True)
+        except Exception as e:
+            print("❌ Error saving graph:", e, flush=True)
+            graph_ok = False
+
+        try:
+            doors_ok = save_doors_to_db(doors_dict, building_id, floor_id)
+            print("✅ Doors saved", flush=True)
+        except Exception as e:
+            print("❌ Error saving doors:", e, flush=True)
+            doors_ok = False
 
         return graph_ok and doors_ok
 
     except Exception as e:
-        print(f"[ERROR] Failed to add building: {e}")
+        print(f"[ERROR] Failed to add floor: {e}", flush=True)
         db.session.rollback()
         return False
     

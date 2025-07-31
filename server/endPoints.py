@@ -34,7 +34,7 @@ def start_new_floor():
         svg = manger.addBuilding(yaml_file, dwg_file, buildingID, floorId)
         svg_string = svg.tostring()
         svg_bytes = svg_string.encode('utf-8')
-        return Response(svg_bytes, mimetype='image/svg+xml')
+        return Response(svg_bytes, mimetype='image/svg+xml'), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -192,7 +192,6 @@ def add_building():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     
-
 @bp.route('/floors/get', methods=['GET'], endpoint='getFloorsForBuilding')
 def get_floors_for_building():
     try:
