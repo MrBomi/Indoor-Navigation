@@ -4,7 +4,7 @@ from flask import Flask, Response, request, jsonify, send_file, Blueprint, curre
 import server.dataBaseManger as dbm
 from server.mangerBuldings import mangerBuldings
 bp = Blueprint('building', __name__)
-import server.DataBaseManger.buildingManger as building_db_manger
+import server.DataBaseManger.floorManager as building_db_manger
 import server.DataBaseManger.graphManger as graph_db_manger
 import server.DataBaseManger.doorsManger as doors_db_manger
 from io import BytesIO
