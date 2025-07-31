@@ -8,7 +8,7 @@ class Building(db.Model):
     address = db.Column(db.String(100))
 
 class Floor(db.Model):
-    _tablename_ = 'floor'
+    __tablename__ = 'floor'
     id = db.Column(db.Text, nullable=False)
     svg_data = db.Column(db.Text) 
     grid_svg = db.Column(db.Text) 
@@ -26,7 +26,7 @@ class Floor(db.Model):
 
 
 class Door(db.Model):
-    _tablename_ = 'doors'
+    __tablename__ = 'doors'
     id = db.Column(db.Integer, primary_key=True)
     x = db.Column(db.Float)
     y = db.Column(db.Float)
@@ -36,7 +36,7 @@ class Door(db.Model):
     floor_id = db.Column(db.Text, nullable=False)
     building_id = db.Column(db.Integer, nullable=False)
 
-    _table_args_ = (
+    __table_args__ = (
         db.ForeignKeyConstraint(
             ['floor_id', 'building_id'],
             ['floor.id', 'floor.building_id']
@@ -51,10 +51,9 @@ class Graph(db.Model):
     building_id = db.Column(db.Integer, nullable=False)
     json_data = db.Column(db.Text)
 
-    _table_args_ = (
+    __table_args__ = (
         db.ForeignKeyConstraint(
             ['floor_id', 'building_id'],
             ['floor.id', 'floor.building_id']
         ),
     )
-
