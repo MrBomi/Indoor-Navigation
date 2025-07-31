@@ -41,6 +41,7 @@ def start_new_floor():
 @bp.route('/floor/calibrate', methods=['POST'], endpoint='calibrateBuilding')
 def calibrate_building():
     try:
+        print("Calibrating building...")
         data = request.get_json(force=True)  
         building_id = data.get('building_id')
         floor_id = data.get('floor_id')
@@ -191,7 +192,7 @@ def add_building():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     
-    
+
 @bp.route('/floors/get', methods=['GET'], endpoint='getFloorsForBuilding')
 def get_floors_for_building():
     try:
