@@ -1,7 +1,13 @@
 from server.extensions import db
 
+
 class Building(db.Model):
     __tablename__ = 'buildings'
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(20))
+    address = db.Column(db.String(100))
+class Floor(db.Model):
+    __tablename__ = 'floors'
     id = db.Column(db.Text, primary_key=True)
     svg_data = db.Column(db.Text) 
     grid_svg = db.Column(db.Text) 
@@ -11,6 +17,7 @@ class Building(db.Model):
     y_max = db.Column(db.Float)
     doors = db.relationship('Door', backref='building', cascade='all, delete-orphan')
     graph = db.relationship('Graph', uselist=False, backref='building')
+    building_id = db.Column(db.Integer, db.ForeignKey('buildings.id'))
 
 
 class Door(db.Model):

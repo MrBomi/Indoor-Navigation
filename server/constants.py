@@ -5,3 +5,10 @@ BUILDING_UPDATE_DOORS_NAME = f'{BUILDING}/updateDoorsName'
 BUILDING_GET_PATH = f'{BUILDING}/getPath'
 BUILDING_GET_SVG_DIRECT = f'{BUILDING}/getSvgDirect'
 BUILDING_GET_BUILDINGS = f'{BUILDING}/getBuildings'
+
+
+#parameters
+BUILDING_ID = 'buildingId'
+DOOR_ID = 'doorId'
+FLOOR_ID = 'floorId'
+

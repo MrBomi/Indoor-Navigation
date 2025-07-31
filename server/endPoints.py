@@ -13,6 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import core.ManagerFloor as logic
 
 
+
 # @bp.route('/building/new', methods=['POST'], endpoint='newBuilding')
 # def new_building():
 @bp.route('/building/add', methods=['POST'], endpoint='newBuilding')
@@ -37,17 +38,9 @@ def statr_new_building():
 @bp.route('/building/calibrate', methods=['POST'], endpoint='calibrateBuilding')
 def calibrate_building():
     try:
-        # if 'dwg' not in request.files or 'yaml' not in request.files:
-        #     return "Both DWG and YAML files are required", 400
-        # dwg_file = request.files['dwg']
-        # print(type(dwg_file))
-        # print(dwg_file.content_type)
-        # yaml_file = request.files['yaml']
-        # buildingID = request.form.get('buildingId')
-        #yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
-        #manger.addBuilding(yaml_file, dwg_file, buildingID)
         data = request.get_json(force=True)  
         building_id = data.get('building_id')
+        floor_id = data.get('floor_id')
         calibration = data.get('calibration_data', {})
         first_point = calibration.get('first_point', {})
         second_point = calibration.get('second_point', {})
@@ -60,7 +53,6 @@ def calibrate_building():
         
         manger = current_app.config['MANAGER']
         door_json = manger.continueAddBuilding(building_id, point1, point2, real_distance_cm)
-        #door_json = manger.getBuilding(buildingID).crete_door_json()
         return jsonify({
                 "buildingId": building_id,
                 "doors": door_json}), 200
@@ -81,7 +73,6 @@ def get_building_data():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-
 @bp.route('/building/updateDoorsName', methods=['PUT'], endpoint='updateDoorName')
 def update_doors_name():
     try:
@@ -101,7 +92,6 @@ def update_doors_name():
         return jsonify({"message": "Doors names updated successfully"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-
 
 @bp.route('/building/route/get', methods=['GET'], endpoint='getSvgPath')
 def get_svg_path():
@@ -153,7 +143,6 @@ def get_buildings():
         return jsonify(building_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @bp.route('/doors/getAll', methods=['GET'], endpoint='getAllDoors')
 def get_all_doors():
