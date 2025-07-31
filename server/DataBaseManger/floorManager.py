@@ -97,3 +97,4 @@ def getNewBuildingId():
     except Exception as e:
         print(f"[ERROR] Failed to get new building ID: {e}")
         return None
+    

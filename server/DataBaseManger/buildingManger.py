@@ -1,5 +1,6 @@
 from server.models import Building
 from server.extensions import db
+import server.DataBaseManger.floorManager as floor_db_manger
 
 
 def get_new_buildingId():
@@ -34,3 +35,21 @@ def add_building(building_name: str, building_city: str,building_address: str) -
         print(f"[ERROR] Failed to add building: {e}")
         db.session.rollback()
         return False
+    
+
+def get_all_buldings():
+    # Retrieve all buildings from the database in list
+    buildings = Building.query.all()
+    if not buildings:
+        return [] 
+    data = [
+        {
+            "id": building.id,
+            "name": building.name,
+            "city": building.city,
+            "address": building.address,
+            "floors": floor_db_manger.get_all_floor_ids(building.id)
+        }
+        for building in buildings
+    ]
+    return data

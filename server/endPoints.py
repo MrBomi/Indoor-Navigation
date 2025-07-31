@@ -5,7 +5,7 @@ from flask import Flask, Response, request, jsonify, send_file, Blueprint, curre
 from server.mangerBuldings import mangerBuldings
 bp = Blueprint('building', __name__)
 import server.DataBaseManger.buildingManger as building_db_manger
-import server.DataBaseManger.floorManger as floor_db_manger
+import server.DataBaseManger.floorManager as floor_db_manger
 import server.DataBaseManger.graphManger as graph_db_manger
 import server.DataBaseManger.doorsManger as doors_db_manger
 from io import BytesIO
@@ -139,7 +139,7 @@ def send_svg(rel_path = None):
 @bp.route('/buildings/get', methods=['GET'], endpoint='getBuildings')
 def get_buildings():
     try:
-        building_list = floor_db_manger.get_all_ids()
+        building_list = building_db_manger.get_all_buldings()
         if not building_list:
             return jsonify({"message": "No buildings found"}), 404
         return jsonify(building_list), 200
