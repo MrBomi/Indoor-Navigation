@@ -27,17 +27,18 @@ def start_new_floor():
         print(type(dwg_file))
         print(dwg_file.content_type)
         yaml_file = request.files['yaml']
-        buildingID = request.form.get('buildingId')
+        buildingID = request.form.get(constants.BUILDING_ID)
+        floorId = request.form.get(constants.FLOOR_ID)
         #yaml_path, dwg_path = dbm.saveInLocal(dwg_file, yaml_file)
         manger = current_app.config['MANAGER']
-        svg = manger.addBuilding(yaml_file, dwg_file, buildingID)
+        svg = manger.addBuilding(yaml_file, dwg_file, buildingID, floorId)
         svg_string = svg.tostring()
         svg_bytes = svg_string.encode('utf-8')
         return Response(svg_bytes, mimetype='image/svg+xml')
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/building/calibrate', methods=['POST'], endpoint='calibrateBuilding')
+@bp.route('/floor/calibrate', methods=['POST'], endpoint='calibrateBuilding')
 def calibrate_building():
     try:
         data = request.get_json(force=True)  
@@ -54,7 +55,7 @@ def calibrate_building():
 
         
         manger = current_app.config['MANAGER']
-        door_json = manger.continueAddBuilding(building_id, point1, point2, real_distance_cm)
+        door_json = manger.continueAddBuilding(building_id, floor_id, point1, point2, real_distance_cm)
         return jsonify({
                 "buildingId": building_id,
                 "doors": door_json}), 200
@@ -189,4 +190,18 @@ def add_building():
             return jsonify({"error": "Building already exists"}), 400
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+    
+    
+@bp.route('/floors/get', methods=['GET'], endpoint='getFloorsForBuilding')
+def get_floors_for_building():
+    try:
+        building_id = request.args.get('buildingId')
+        if not building_id:
+            return jsonify({"error": "Building ID is required"}), 400
+        
+        floor_ids = floor_db_manger.get_all_floor_ids(building_id)
+        return jsonify(floor_ids), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     

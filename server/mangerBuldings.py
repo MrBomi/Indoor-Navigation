@@ -16,22 +16,23 @@ class mangerBuldings:
         self.buildingsNumber = b_db_manger.getNewBuildingId()
         self.lock = threading.Lock()
 
-    def addBuilding(self, yaml_file, dwg_file, buildingID):
+    def addBuilding(self, yaml_file, dwg_file, buildingID, floorId):
         config = cl.Config(yaml_file)
-        self.buildings[int(buildingID)] = App(config, dwg_file)
-        return self.buildings[int(buildingID)].startProccesCreateNewBuilding()
-        svg = self.buildings[buildingID].getSvgStrring()
-        graph = self.buildings[buildingID].getGraph()
-        doors = self.buildings[buildingID].getDoorsData()
-        x_min = self.buildings[buildingID].getXMinRaw()
-        x_max = self.buildings[buildingID].getXMaxRaw()
-        y_min = self.buildings[buildingID].getYMinRaw()
-        y_max = self.buildings[buildingID].getYMaxRaw()
-        b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
+        key = (int(buildingID), floorId)
+        self.buildings[key] = App(config, dwg_file)
+        return self.buildings[key].startProccesCreateNewBuilding()
+        # svg = self.buildings[buildingID].getSvgStrring()
+        # graph = self.buildings[buildingID].getGraph()
+        # doors = self.buildings[buildingID].getDoorsData()
+        # x_min = self.buildings[buildingID].getXMinRaw()
+        # x_max = self.buildings[buildingID].getXMaxRaw()
+        # y_min = self.buildings[buildingID].getYMinRaw()
+        # y_max = self.buildings[buildingID].getYMaxRaw()
+        # b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
 
-    def continueAddBuilding(self, buildingID, point1, point2, real_distance_cm):
-        building = self.buildings[buildingID].continueAddBuilding(point1, point2, real_distance_cm)
-        del self.buildings[buildingID]
+    def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm):
+        building = self.buildings[(buildingID, floorId)].continueAddBuilding(point1, point2, real_distance_cm)
+        del self.buildings[(buildingID, floorId)]
         svg = building.getSvgString()
         grid_svg = building.getGridSvgString()
         graph = building.getGraph()
@@ -40,7 +41,7 @@ class mangerBuldings:
         x_max = building.getXMaxRaw()
         y_min = building.getYMinRaw()
         y_max = building.getYMaxRaw()
-        b_db_manger.add_building(str(buildingID), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
+        b_db_manger.add_floor(str(buildingID), str(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
         return building.create_door_json()
 
     def getBuildings(self):

@@ -10,7 +10,7 @@ class Building(db.Model):
 
 class Floor(db.Model):
     __tablename__ = 'floor'
-    id = db.Column(db.Text, nullable=False)
+    id = db.Column(db.Integer, nullable=False)
     svg_data = db.Column(db.Text) 
     grid_svg = db.Column(db.Text) 
     x_min = db.Column(db.Float)
