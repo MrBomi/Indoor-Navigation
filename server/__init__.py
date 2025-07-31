@@ -11,7 +11,7 @@ def create_app():
 
     with app.app_context():
         from server import models  
-
+        
         db.create_all()
     
         from server.endPoints import bp

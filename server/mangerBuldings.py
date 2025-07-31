@@ -8,7 +8,7 @@ import threading
 from core.app import App
 from core.ManagerFloor import ManagerFloor
 import core.configLoader as cl
-import server.DataBaseManger.buildingManger as b_db_manger
+import server.DataBaseManger.floorManger as b_db_manger
 
 class mangerBuldings:
     def __init__(self):
