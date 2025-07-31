@@ -34,7 +34,7 @@ class Door(db.Model):
     scale_x = db.Column(db.Float)
     scale_y = db.Column(db.Float)
     name = db.Column(db.String)
-    floor_id = db.Column(db.Text, nullable=False)
+    floor_id = db.Column(db.Integer, nullable=False)
     building_id = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
@@ -46,9 +46,9 @@ class Door(db.Model):
 
 
 class Graph(db.Model):
-    _tablename_ = 'graphs'
+    __tablename__ = 'graphs'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    floor_id = db.Column(db.Text, nullable=False)
+    floor_id = db.Column(db.Integer, nullable=False)
     building_id = db.Column(db.Integer, nullable=False)
     json_data = db.Column(db.Text)
 

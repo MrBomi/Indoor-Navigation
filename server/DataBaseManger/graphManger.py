@@ -1,13 +1,13 @@
 from server.models import Graph, db
 import json
 
-def save_graph_to_db(building_id: str, graph_dict: dict):
+def save_graph_to_db(building_id: int, floor_id: int, graph_dict: dict):
     try:
         #json_graph = json.dumps(graph_dict) 
         json_graph = json.dumps(stringify_graph_keys(graph_dict))
-        graph = Graph(building_id=building_id, json_data=json_graph)
-        
-        existing = Graph.query.filter_by(building_id=building_id).first()
+        graph = Graph(building_id=building_id, floor_id=floor_id, json_data=json_graph)
+
+        existing = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
         if existing:
             db.session.delete(existing)
 
@@ -25,7 +25,7 @@ def stringify_graph_keys(graph_dict):
         for (x, y), neighbors in graph_dict.items()
     }
 
-def get_graph_from_db(building_id: str) -> dict:
+def get_graph_from_db(building_id: int) -> dict:
     graph_record = Graph.query.filter_by(building_id=building_id).first()
     if not graph_record:
         raise ValueError(f"No graph found for building ID {building_id}")

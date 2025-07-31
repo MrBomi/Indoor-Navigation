@@ -18,7 +18,7 @@ class mangerBuldings:
 
     def addBuilding(self, yaml_file, dwg_file, buildingID, floorId):
         config = cl.Config(yaml_file)
-        key = (int(buildingID), floorId)
+        key = (int(buildingID), int(floorId))
         self.buildings[key] = App(config, dwg_file)
         return self.buildings[key].startProccesCreateNewBuilding()
         # svg = self.buildings[buildingID].getSvgStrring()
@@ -41,7 +41,7 @@ class mangerBuldings:
         x_max = building.getXMaxRaw()
         y_min = building.getYMinRaw()
         y_max = building.getYMaxRaw()
-        b_db_manger.add_floor(str(buildingID), str(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
+        b_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max)
         return building.create_door_json()
 
     def getBuildings(self):

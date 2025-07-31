@@ -9,10 +9,10 @@ def putId(door_id: str) -> int:
     except (IndexError, ValueError):
         raise ValueError(f"Invalid door ID format: {door_id}")
 
-def save_doors_to_db(doors_dict: dict, building_id: str) -> bool:
-    Door.query.filter_by(building_id=building_id).delete()
+def save_doors_to_db(doors_dict: dict, building_id: int, floor_id: int) -> bool:
+    Door.query.filter_by(building_id=building_id, floor_id=floor_id).delete()
     for door in doors_dict.values():
-        door_id = create_key(door.getId(), building_id)
+        door_id = door.getId() #create_key(door.getId(), building_id)
         db_door = Door(
             id=door_id,
             x=door.getX(),
@@ -20,7 +20,8 @@ def save_doors_to_db(doors_dict: dict, building_id: str) -> bool:
             name=door.getName(),
             scale_x=door.getScaledCoordinates()[0],
             scale_y=door.getScaledCoordinates()[1],
-            building_id=building_id
+            building_id=building_id,
+            floor_id=floor_id
         )
         db.session.add(db_door)
 
