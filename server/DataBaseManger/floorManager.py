@@ -2,6 +2,9 @@ from server.models import Floor, Building
 from server.extensions import db
 from server.DataBaseManger.graphManger import save_graph_to_db
 from server.DataBaseManger.doorsManger import save_doors_to_db
+from server.discord_logs import get_logger
+
+logger = get_logger(__name__)
 
 
 def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float) -> bool:
@@ -11,6 +14,7 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
             db.session.delete(existing)
             db.session.commit()
             print("ℹ Deleted existing floor", flush=True)
+            logger.info(f"Deleted existing floor {floor_id} in building {building_id}")
 
         floor = Floor(
             id=floor_id,
@@ -22,26 +26,32 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
         )
         db.session.add(floor)
         db.session.commit()
+        logger.info(f"Added floor {floor_id} to building {building_id}")
         print("✅ Floor added to DB", flush=True)
 
         try:
             graph_ok = save_graph_to_db(building_id, floor_id, graph_dict)
             print("✅ Graph saved", flush=True)
+            logger.info(f"Graph for floor {floor_id} in building {building_id} saved successfully")
         except Exception as e:
             print("❌ Error saving graph:", e, flush=True)
+            logger.error(f"Error saving graph for floor {floor_id} in building {building_id}: {e}")
             graph_ok = False
 
         try:
             doors_ok = save_doors_to_db(doors_dict, building_id, floor_id)
             print("✅ Doors saved", flush=True)
+            logger.info(f"Doors for floor {floor_id} in building {building_id} saved successfully")
         except Exception as e:
             print("❌ Error saving doors:", e, flush=True)
+            logger.error(f"Error saving doors for floor {floor_id} in building {building_id}: {e}")
             doors_ok = False
 
         return graph_ok and doors_ok
 
     except Exception as e:
         print(f"[ERROR] Failed to add floor: {e}", flush=True)
+        logger.error(f"Failed to add floor {floor_id} to building {building_id}: {e}")
         db.session.rollback()
         return False
     

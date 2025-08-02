@@ -10,6 +10,9 @@ from core.ManagerFloor import ManagerFloor
 import core.configLoader as cl
 import server.DataBaseManger.floorManager as floor_db_manger
 import server.DataBaseManger.buildingManger as building_db_manger
+from discord_logs import get_logger
+
+logger = get_logger(__name__)
 
 class mangerBuldings:
     def __init__(self):
@@ -38,6 +41,7 @@ class mangerBuldings:
     def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm):
         building = self.buildings[(buildingID, floorId)].continueAddBuilding(point1, point2, real_distance_cm)
         del self.buildings[(buildingID, floorId)]
+        logger.info(f"Building {buildingID}, Floor {floorId} continued.")
         svg = building.getSvgString()
         grid_svg = building.getGridSvgString()
         graph = building.getGraph()

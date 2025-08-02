@@ -13,8 +13,9 @@ import sys
 import server.constants as constants
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import core.ManagerFloor as logic
+from server.discord_logs import get_logger
 
-
+logger = get_logger(__name__)
 
 # @bp.route('/building/new', methods=['POST'], endpoint='newBuilding')
 # def new_building():
@@ -41,7 +42,7 @@ def start_new_floor():
 @bp.route('/floor/calibrate', methods=['POST'], endpoint='calibrateBuilding')
 def calibrate_building():
     try:
-        print("Calibrating building...")
+        logger.info("Calibrating building...")
         data = request.get_json(force=True)  
         building_id = data.get('building_id')
         floor_id = data.get('floor_id')
