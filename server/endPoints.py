@@ -22,6 +22,7 @@ logger = get_logger(__name__)
 @bp.route('/floor/add', methods=['POST'], endpoint='newFloor')
 def start_new_floor():
     try:
+        logger.info("Starting new floor creation...")
         if 'dwg' not in request.files or 'yaml' not in request.files:
             return "Both DWG and YAML files are required", 400
         dwg_file = request.files['dwg']
