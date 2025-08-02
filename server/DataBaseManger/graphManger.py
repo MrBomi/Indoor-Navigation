@@ -25,10 +25,10 @@ def stringify_graph_keys(graph_dict):
         for (x, y), neighbors in graph_dict.items()
     }
 
-def get_graph_from_db(building_id: int) -> dict:
-    graph_record = Graph.query.filter_by(building_id=building_id).first()
+def get_graph_from_db(building_id: int, floor_id: int) -> dict:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
     if not graph_record:
-        raise ValueError(f"No graph found for building ID {building_id}")
+        raise ValueError(f"No graph found for building ID {building_id} and floor ID {floor_id}")
 
     raw_graph = json.loads(graph_record.json_data)
     graph = unstringify_graph_keys(raw_graph)

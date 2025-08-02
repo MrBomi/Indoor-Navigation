@@ -17,9 +17,7 @@ from server.discord_logs import get_logger
 
 logger = get_logger(__name__)
 
-# @bp.route('/building/new', methods=['POST'], endpoint='newBuilding')
-# def new_building():
-@bp.route('/floor/add', methods=['POST'], endpoint='newFloor')
+@bp.route(constants.ADD_FLOOR, methods=['POST'], endpoint='newFloor')
 def start_new_floor():
     try:
         logger.info("Starting new floor creation...")
@@ -40,8 +38,8 @@ def start_new_floor():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/floor/calibrate', methods=['POST'], endpoint='calibrateBuilding')
-def calibrate_building():
+@bp.route(constants.CALIBRATE_FLOOR, methods=['POST'], endpoint='calibrateFloor')
+def calibrate_floor():
     try:
         logger.info("Calibrating building...")
         data = request.get_json(force=True)  
@@ -64,58 +62,62 @@ def calibrate_building():
                 "doors": door_json}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    
-@bp.route('/building/data/get', methods=['GET'], endpoint='getBuildingData')
-def get_building_data():
+
+@bp.route(constants.GET_FLOOR_DATA, methods=['GET'], endpoint='getFloorData')
+def get_floor_data():
     try:
-        buildingId = request.args.get('buildingId')
-        if not buildingId:
-            return jsonify({"error": "Building ID is required"}), 400
-        doors = doors_db_manger.get_all_doors_data(buildingId)
+        buildingId = request.args.get(constants.BUILDING_ID)
+        floorId = request.args.get(constants.FLOOR_ID)
+        if not buildingId or not floorId:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        doors = doors_db_manger.get_all_doors_data(buildingId, floorId)
         return jsonify({
             "building_id" : str(buildingId),
+            "floor_id" : str(floorId),
             "rooms" : doors
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/building/updateDoorsName', methods=['PUT'], endpoint='updateDoorName')
+@bp.route(constants.UPDATE_DOORS_NAMES, methods=['PUT'], endpoint='updateDoorName')
 def update_doors_name():
     try:
         doors = request.get_json().get('doors', {})
-        buildingID = str(request.get_json().get('buildingID'))
-        if not doors or not buildingID:
-            return jsonify({"error": "Doors data or building ID is missing"}), 400
-        doors_db_manger.update_doors_names(doors, buildingID)
-        doors_data = doors_db_manger.get_all_doors_data(buildingID)
-        svg = floor_db_manger.get_Svg_data(buildingID)
-        grid_svg = floor_db_manger.get_grid_svg(buildingID)
-        x_min, x_max, y_min, y_max = floor_db_manger.get_building_by_id(buildingID)
+        buildingID = request.get_json().get('buildingID')
+        floorId = request.get_json().get('floorId')
+        if not doors or not buildingID or not floorId:
+            return jsonify({"error": "Doors data, building ID, or floor ID is missing"}), 400
+        doors_db_manger.update_doors_names(doors, buildingID, floorId)
+        doors_data = doors_db_manger.get_all_doors_data(buildingID, floorId)
+        svg = floor_db_manger.get_Svg_data(buildingID, floorId)
+        grid_svg = floor_db_manger.get_grid_svg(buildingID, floorId)
+        x_min, x_max, y_min, y_max = floor_db_manger.get_floor_by_id(buildingID, floorId)
         update_svg = logic.update_svg_door_names(svg, doors_data, x_min, x_max, y_min, y_max)
         grid_svg = logic.update_svg_door_names(grid_svg, doors_data, x_min, x_max, y_min, y_max)
-        floor_db_manger.update_svg_data(buildingID, update_svg)
-        floor_db_manger.update_grid_svg_data(buildingID, grid_svg)
+        floor_db_manger.update_svg_data(buildingID, floorId, update_svg)
+        floor_db_manger.update_grid_svg_data(buildingID, floorId, grid_svg)
         return jsonify({"message": "Doors names updated successfully"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/building/route/get', methods=['GET'], endpoint='getSvgPath')
+@bp.route(constants.FLOOR_GET_ROUTE, methods=['GET'], endpoint='getSvgPath')
 def get_svg_path():
     try:
-        buildingID = request.args.get('buildingId')
+        buildingID = request.args.get(constants.BUILDING_ID)
+        floorID = request.args.get(constants.FLOOR_ID)
         start = request.args.get('start')
         goal = request.args.get('goal')
-        if not buildingID:
-            return jsonify({"error": "Building ID is required"}), 400
+        if not buildingID or not floorID:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
         if not start:
             return jsonify({"error": "Start point is required"}), 400
         if not goal:
             return jsonify({"error": "Goal point is required"}), 400
-        graph = graph_db_manger.get_graph_from_db(buildingID)
-        svg_data = floor_db_manger.get_Svg_data(buildingID)
-        x_min, x_max, y_min, y_max = floor_db_manger.get_building_by_id(buildingID)
-        start_p = doors_db_manger.get_coordinate_by_name(start, buildingID)
-        goal_p = doors_db_manger.get_coordinate_by_name(goal, buildingID)
+        graph = graph_db_manger.get_graph_from_db(buildingID, floorID)
+        svg_data = floor_db_manger.get_Svg_data(buildingID, floorID)
+        x_min, x_max, y_min, y_max = floor_db_manger.get_floor_by_id(buildingID, floorID)
+        start_p = doors_db_manger.get_coordinate_by_name(start, buildingID, floorID)
+        goal_p = doors_db_manger.get_coordinate_by_name(goal, buildingID, floorID)
         svg_with_path = logic.get_svg_with_path(svg_data, graph, start_p, goal_p, x_min, x_max, y_min, y_max)
         svg_bytes = svg_with_path.encode('utf-8')
         buffer = BytesIO(svg_bytes)
@@ -124,23 +126,24 @@ def get_svg_path():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/building/getSvgDirect', methods=['GET'])
+@bp.route(constants.GET_SVG_DIRECT, methods=['GET'], endpoint='getSvgDirect')
 def send_svg(rel_path = None):
     try:
-        buildingID = request.args.get('buildingId')
-        if not buildingID:
-            return jsonify({"error": "Building ID is required"}), 400
-        svg_data = floor_db_manger.get_Svg_data(buildingID)
+        buildingID = request.args.get(constants.BUILDING_ID)
+        floorID = request.args.get(constants.FLOOR_ID)
+        if not buildingID or not floorID:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        svg_data = floor_db_manger.get_Svg_data(buildingID, floorID)
         if not svg_data:
             return jsonify({"error": "SVG data not found for the given building ID"}), 404
         svg_bytes = svg_data.encode('utf-8')
         buffer = BytesIO(svg_bytes)
         buffer.seek(0)
-        return send_file(buffer, mimetype='image/svg+xml', as_attachment=False, download_name=f"building_{buildingID}.svg")
+        return send_file(buffer, mimetype='image/svg+xml', as_attachment=False, download_name=f"building_{buildingID}.svg"), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-   
-@bp.route('/buildings/get', methods=['GET'], endpoint='getBuildings')
+
+@bp.route(constants.GET_ALL_BUILDINGS, methods=['GET'], endpoint='getBuildings')
 def get_buildings():
     try:
         building_list = building_db_manger.get_all_buldings()
@@ -150,24 +153,26 @@ def get_buildings():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@bp.route('/doors/getAll', methods=['GET'], endpoint='getAllDoors')
+@bp.route(constants.GET_ALL_DOORS, methods=['GET'], endpoint='getAllDoors')
 def get_all_doors():
     try:
-        building_id = request.args.get('buildingId')
-        if not building_id:
-            return jsonify({"error": "Building ID is required"}), 400
-        doors = doors_db_manger.get_doors_coord(building_id)
+        building_id = request.args.get(constants.BUILDING_ID)
+        floor_id = request.args.get(constants.FLOOR_ID)
+        if not building_id or not floor_id:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        doors = doors_db_manger.get_doors_coord(building_id, floor_id)
         return jsonify(doors), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    
-@bp.route('/building/getGridSvg', methods=['GET'], endpoint='getDoorByName')
+
+@bp.route(constants.GET_GRID_SVG, methods=['GET'], endpoint='getGridSvg')
 def get_grid_svg():
     try:
-        building_id = request.args.get('buildingId')
-        if not building_id:
-            return jsonify({"error": "Building ID is required"}), 400
-        grid_svg = floor_db_manger.get_grid_svg(building_id)
+        building_id = request.args.get(constants.BUILDING_ID)
+        floor_id = request.args.get(constants.FLOOR_ID)
+        if not building_id or not floor_id:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        grid_svg = floor_db_manger.get_grid_svg(building_id, floor_id)
         if not grid_svg:
             return jsonify({"error": "Grid SVG not found for the given building ID"}), 404
         svg_bytes = grid_svg.encode('utf-8')
@@ -179,7 +184,7 @@ def get_grid_svg():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/building/add', methods=['POST'], endpoint='addBuilding')
+@bp.route(constants.ADD_BUILDING, methods=['POST'], endpoint='addBuilding')
 def add_building():
     try:
         name = request.args.get('name')
@@ -193,11 +198,11 @@ def add_building():
             return jsonify({"error": "Building already exists"}), 400
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    
-@bp.route('/floors/get', methods=['GET'], endpoint='getFloorsForBuilding')
+
+@bp.route(constants.GET_FLOORS, methods=['GET'], endpoint='getFloorsForBuilding')
 def get_floors_for_building():
     try:
-        building_id = request.args.get('buildingId')
+        building_id = request.args.get(constants.BUILDING_ID)
         if not building_id:
             return jsonify({"error": "Building ID is required"}), 400
         

@@ -15,7 +15,7 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
             db.session.commit()
             print("ℹ Deleted existing floor", flush=True)
             logger.info(f"Deleted existing floor {floor_id} in building {building_id}")
-
+        logger.info(f"Adding floor {floor_id} to building {building_id} with SVG data and graph.")
         floor = Floor(
             id=floor_id,
             svg_data=svg_data,
@@ -77,7 +77,7 @@ def get_grid_svg(building_id: int, floor_id: int) -> str:
         print(f"[ERROR] Failed to retrieve grid SVG for floor {floor_id} in building {building_id}: {e}")
         return ""
 
-def get_floor_by_pk(building_id: int, floor_id: int):
+def get_floor_by_id(building_id: int, floor_id: int):
     floor = Floor.query.get((floor_id, building_id))
     if not floor:
         raise ValueError(f"Floor with ID {floor_id} in building {building_id} not found.")

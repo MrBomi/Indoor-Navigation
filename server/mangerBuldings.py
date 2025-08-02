@@ -42,9 +42,10 @@ class mangerBuldings:
         # b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
 
     def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm):
+        logger.info(f"Continuing building {buildingID}, Floor {floorId} with points {point1}, {point2} and distance {real_distance_cm}")
         building = self.buildings[(buildingID, floorId)].continueAddBuilding(point1, point2, real_distance_cm)
         del self.buildings[(buildingID, floorId)]
-        logger.info(f"Building {buildingID}, Floor {floorId} continued.")
+        logger.info(f"Building {buildingID}, Floor {floorId} completed, before saving to database.")
         svg = building.getSvgString()
         grid_svg = building.getGridSvgString()
         graph = building.getGraph()
