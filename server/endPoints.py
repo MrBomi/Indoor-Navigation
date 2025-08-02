@@ -43,7 +43,7 @@ def start_new_floor():
 @bp.route('/floor/calibrate', methods=['POST'], endpoint='calibrateBuilding')
 def calibrate_building():
     try:
-        logger.info("Calibrating building...")
+        logger.info("Calibrating building...", flush=True)
         data = request.get_json(force=True)  
         building_id = data.get('building_id')
         floor_id = data.get('floor_id')

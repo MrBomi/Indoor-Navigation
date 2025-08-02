@@ -10,7 +10,7 @@ from core.ManagerFloor import ManagerFloor
 import core.configLoader as cl
 import server.DataBaseManger.floorManager as floor_db_manger
 import server.DataBaseManger.buildingManger as building_db_manger
-from discord_logs import get_logger
+from server.discord_logs import get_logger
 
 logger = get_logger(__name__)
 
@@ -27,6 +27,9 @@ class mangerBuldings:
             raise ValueError(f"Floor with ID {floorId} already exists in building {buildingID}.")
         config = cl.Config(yaml_file)
         key = (int(buildingID), int(floorId))
+        if key in self.buildings:
+            logger.info(f"Building {buildingID}, Floor {floorId} already exists, reusing existing instance.")
+            return self.buildings[key].startProccesCreateNewBuilding()
         self.buildings[key] = App(config, dwg_file)
         return self.buildings[key].startProccesCreateNewBuilding()
         # svg = self.buildings[buildingID].getSvgStrring()
