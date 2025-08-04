@@ -90,7 +90,7 @@ class App:
         point1_unscaled = self.utils.unscale(point1[0], point1[1])
         point2_unscaled = self.utils.unscale(point2[0], point2[1])
         distance_raw = math.sqrt((point2_unscaled[0] - point1_unscaled[0]) ** 2 + (point2_unscaled[1] - point1_unscaled[1]) ** 2)
-        self.unit_scale = distance_cm / distance_raw
+        self.unit_scale = 1 #distance_cm / distance_raw
         self.spacing = math.floor(20 / self.unit_scale)
         print(f"scale: {self.unit_scale} spacing: {self.spacing}")
     
@@ -110,8 +110,8 @@ class App:
 
         coarse_to_fine = self.createGreedToSvg(graph)
         one_m_space = math.floor(100 / self.unit_scale)
-        grid_svg = SvgManager.addGridToSvg(self.all_lines, coarse_to_fine, self.utils, one_m_space)
-        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils)
+        grid_svg, cell_id_to_coords = SvgManager.addGridToSvg(self.all_lines, coarse_to_fine, self.utils, one_m_space)
+        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords)
         return building
         
     def createGreedToSvg(self, graph):

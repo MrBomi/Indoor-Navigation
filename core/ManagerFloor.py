@@ -12,7 +12,7 @@ import core.SvgManager as SvgManager
 
 class ManagerFloor:
     #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
-    def __init__(self, graph, door_points, basic_svg, grid_svg, utils):
+    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords):
         self.graph = graph
         #self.door_points = door_points
         #self.wall_lines = wall_lines
@@ -28,6 +28,7 @@ class ManagerFloor:
         self.output_path = "static/output/output_with_path.svg"
         print(f"ManagerFloor initialized with {len(self.doors_data)} doors and graph with {len(self.graph)} nodes.")
         self.createDoorsData(door_points, utils)
+        self.cell_id_to_coords = cell_id_to_coords
 
     def getSvgString(self):
         if not self.basic_svg:
@@ -68,6 +69,16 @@ class ManagerFloor:
         if not self.y_max_raw:
             raise ValueError("Y max raw value is not initialized.")
         return self.y_max_raw
+    
+    def getCellIdToCoords(self):
+        if not self.cell_id_to_coords:
+            raise ValueError("Cell ID to coordinates mapping is not initialized.")
+        return self.cell_id_to_coords
+
+    def getCellIdCoordsJson(self):
+        if not self.cell_id_to_coords:
+            raise ValueError("Cell ID to coordinates mapping is not initialized.")
+        return {k: list(v) for k, v in self.cell_id_to_coords.items()}
 
     def find_path(self, start, goal):
         open_set = []

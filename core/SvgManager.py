@@ -14,21 +14,57 @@ def createSvgDrawing(width, height, all_lines, door_points):
         #svg.add(svg.text(str(i), insert=(x + 10, y + 10), fill='black', font_size='12px'))
     return svg
 
+# def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
+#     grid_svg = svgwrite.Drawing(size=(f"{utils.width}px", f"{utils.height}px"))
+#     cell_spacing = spacing
+#     cell_size_px = cell_spacing * utils.svg_scale
+
+#     print("🟦 Drawing grid rectangles...")
+#     updated_coarse_to_fine = {}
+#     count = 0
+
+#     for line in all_lines:
+#         coords = [utils.scale(x, y) for x, y in line.coords]
+#         grid_svg.add(grid_svg.polyline(points=coords, stroke='gray', fill='none', stroke_width=0.5))
+
+#     for coarse_pt, fine_pts in coarse_to_fine.items():
+#         x_svg, y_svg = utils.scale(coarse_pt[0], coarse_pt[1])
+
+#         grid_svg.add(grid_svg.rect(
+#             insert=(x_svg - cell_size_px / 2, y_svg - cell_size_px / 2),
+#             size=(cell_size_px, cell_size_px),
+#             fill='blue',
+#             fill_opacity=0.1,
+#             stroke='black',
+#             stroke_width=0.1,
+#             id=f"cell-{round(x_svg, 2)}-{round(y_svg, 2)}"
+#         ))
+
+#         updated_coarse_to_fine[(round(x_svg, 2), round(y_svg, 2))] = fine_pts
+#         count += 1     
+    # print(f"🟦 Done drawing {count} grid squares.")
+    # return grid_svg
+
 def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
     grid_svg = svgwrite.Drawing(size=(f"{utils.width}px", f"{utils.height}px"))
     cell_spacing = spacing
     cell_size_px = cell_spacing * utils.svg_scale
 
-    print("🟦 Drawing grid rectangles...")
     updated_coarse_to_fine = {}
+    cell_id_to_coords = {}
     count = 0
 
+    # Draw background polylines
     for line in all_lines:
         coords = [utils.scale(x, y) for x, y in line.coords]
         grid_svg.add(grid_svg.polyline(points=coords, stroke='gray', fill='none', stroke_width=0.5))
 
+    # Draw cells and map IDs to original coordinates
     for coarse_pt, fine_pts in coarse_to_fine.items():
         x_svg, y_svg = utils.scale(coarse_pt[0], coarse_pt[1])
+
+        count += 1
+        cell_id = str(count)
 
         grid_svg.add(grid_svg.rect(
             insert=(x_svg - cell_size_px / 2, y_svg - cell_size_px / 2),
@@ -37,14 +73,23 @@ def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
             fill_opacity=0.1,
             stroke='black',
             stroke_width=0.1,
-            id=f"cell-{round(x_svg, 2)}-{round(y_svg, 2)}"
+            id=cell_id
         ))
 
+        font_size = cell_size_px / max(2, len(cell_id))
+        grid_svg.add(grid_svg.text(
+            cell_id,
+            insert=(x_svg, y_svg),
+            text_anchor="middle",
+            alignment_baseline="middle",
+            font_size=font_size,
+            fill="black"
+        ))
+
+        cell_id_to_coords[count] = coarse_pt
         updated_coarse_to_fine[(round(x_svg, 2), round(y_svg, 2))] = fine_pts
-        count += 1
-         
-    print(f"🟦 Done drawing {count} grid squares.")
-    return grid_svg
+
+    return grid_svg, cell_id_to_coords
 
 def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=4, color='blue'):
     SVG_NS = "http://www.w3.org/2000/svg"

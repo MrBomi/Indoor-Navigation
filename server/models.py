@@ -17,6 +17,7 @@ class Floor(db.Model):
     x_max = db.Column(db.Float)
     y_min = db.Column(db.Float)
     y_max = db.Column(db.Float)
+    grid_map = db.Column(db.Text) 
     doors = db.relationship('Door', backref='building', cascade='all, delete-orphan')
     graph = db.relationship('Graph', uselist=False, backref='building')
     building_id = db.Column(db.Integer, db.ForeignKey('buildings.id'), nullable=False)
@@ -24,7 +25,7 @@ class Floor(db.Model):
     __table_args__ = (
         db.PrimaryKeyConstraint('id', 'building_id'),
     )
-    grid_map = db.Column(db.Text) 
+    
 
 
 class Door(db.Model):
