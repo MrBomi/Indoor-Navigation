@@ -212,6 +212,23 @@ def get_floors_for_building():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-# @bp.route(constants.ADD_SCAN, methods=['POST'], endpoint='addScan')
-# def add_scan():
+@bp.route(constants.ADD_SCAN, methods=['PUT'], endpoint='addScan')
+def add_scan():
+    try:
+        data = request.get_json()
+        building_id = data.get(constants.BUILDING_ID)
+        floor_id = data.get(constants.FLOOR_ID)
+        scan_data = data.get('featureVector', {})
+        if not building_id or not floor_id or not scan_data:
+            return jsonify({"error": "Building ID, Floor ID, and scan data are required"}), 400
+        floor_db_manger.add_scan_data(building_id, floor_id, scan_data)
+        return jsonify({"message": "Scan data added successfully"}), 201
+    except Exception as e:
+        #print traceback.format_exc(), file=sys.stderr
+        logger.error(f"Failed to add scan data: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     

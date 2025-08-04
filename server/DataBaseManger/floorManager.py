@@ -136,3 +136,29 @@ def getNewBuildingId():
 def is_floor_exists(building_id: int, floor_id: int) -> bool:
     floor = Floor.query.get((floor_id, building_id))
     return floor is not None
+
+def add_scan_data(building_id: int, floor_id: int, scan_records: list[dict]) -> bool:
+    floor = Floor.query.get((floor_id, building_id))
+    if not floor:
+        raise ValueError(f"Floor {floor_id} in building {building_id} not found.")
+
+    
+    grid_map = json.loads(floor.grid_map) if floor.grid_map else {}
+    new_data = {}
+    for rec in scan_records:
+        name = rec.get("name")
+        if not name or name not in grid_map:
+            continue
+        coord = grid_map[name]
+        key = f"{coord[0]},{coord[1]}"
+        features = {k: v for k, v in rec.items() }
+        new_data[key] = features
+
+    existing = json.loads(floor.scan_table) if floor.scan_table else {}
+    existing.update(new_data)
+    floor.scan_table = json.dumps(existing)
+
+    db.session.add(floor)
+    db.session.commit()
+    return True
+

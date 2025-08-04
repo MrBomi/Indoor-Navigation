@@ -20,7 +20,7 @@ GET_ALL_DOORS = f'{FLOOR}/getDoors'
 GET_GRID_SVG = f'{FLOOR}/getGridSvg'
 ADD_BUILDING = f'{BUILDING}/add'
 GET_FLOORS = f'{BUILDING}/getFloors'
-ADD_SCAN = f'{SCAN}/add'
+ADD_SCAN = f'{FLOOR}/{SCAN}'
 
 
 #parameters
