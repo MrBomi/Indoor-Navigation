@@ -1,6 +1,7 @@
 BUILDING = '/building'
 FLOOR = '/floor'
 ROUTE = '/route'
+SCAN = '/scan'
 
 
 ADD_BUILDING= f'{BUILDING}/add'
@@ -19,6 +20,7 @@ GET_ALL_DOORS = f'{FLOOR}/getDoors'
 GET_GRID_SVG = f'{FLOOR}/getGridSvg'
 ADD_BUILDING = f'{BUILDING}/add'
 GET_FLOORS = f'{BUILDING}/getFloors'
+ADD_SCAN = f'{SCAN}/add'
 
 
 #parameters

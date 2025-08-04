@@ -212,3 +212,6 @@ def get_floors_for_building():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+# @bp.route(constants.ADD_SCAN, methods=['POST'], endpoint='addScan')
+# def add_scan():
+    
