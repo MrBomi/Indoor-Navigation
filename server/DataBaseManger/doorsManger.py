@@ -30,7 +30,6 @@ def save_doors_to_db(doors_dict: dict, building_id: int, floor_id: int) -> bool:
 
 def update_doors_names(doors_dict: dict, building_id: int, floor_id: int) -> bool:
     for door_id, name in doors_dict.items():
-        #key = create_key(door_id, building_id)
         db_door = Door.query.filter_by(id=door_id, building_id=building_id, floor_id=floor_id).first()
         if db_door:
             db_door.name = name

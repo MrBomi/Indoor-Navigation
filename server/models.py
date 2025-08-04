@@ -24,6 +24,7 @@ class Floor(db.Model):
     __table_args__ = (
         db.PrimaryKeyConstraint('id', 'building_id'),
     )
+    grid_map = db.Column(db.Text) 
 
 
 class Door(db.Model):
