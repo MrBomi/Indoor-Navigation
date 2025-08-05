@@ -1,4 +1,5 @@
 import io
+import traceback
 import os
 from flask import Flask, Response, request, jsonify, send_file, Blueprint, current_app
 #import server.dataBaseManger as dbm
@@ -12,7 +13,8 @@ from io import BytesIO
 import sys
 import server.constants as constants
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import core.ManagerFloor as logic
+import core.ManagerFloor as logicMangerFloor
+from core.predict.predict import Predict
 from server.discord_logs import get_logger
 
 logger = get_logger(__name__)
@@ -92,8 +94,8 @@ def update_doors_name():
         svg = floor_db_manger.get_Svg_data(buildingID, floorId)
         grid_svg = floor_db_manger.get_grid_svg(buildingID, floorId)
         x_min, x_max, y_min, y_max = floor_db_manger.get_floor_by_id(buildingID, floorId)
-        update_svg = logic.update_svg_door_names(svg, doors_data, x_min, x_max, y_min, y_max)
-        grid_svg = logic.update_svg_door_names(grid_svg, doors_data, x_min, x_max, y_min, y_max)
+        update_svg = logicMangerFloor.update_svg_door_names(svg, doors_data, x_min, x_max, y_min, y_max)
+        grid_svg = logicMangerFloor.update_svg_door_names(grid_svg, doors_data, x_min, x_max, y_min, y_max)
         floor_db_manger.update_svg_data(buildingID, floorId, update_svg)
         floor_db_manger.update_grid_svg_data(buildingID, floorId, grid_svg)
         return jsonify({"message": "Doors names updated successfully"}), 200
@@ -118,7 +120,7 @@ def get_svg_path():
         x_min, x_max, y_min, y_max = floor_db_manger.get_floor_by_id(buildingID, floorID)
         start_p = doors_db_manger.get_coordinate_by_name(start, buildingID, floorID)
         goal_p = doors_db_manger.get_coordinate_by_name(goal, buildingID, floorID)
-        svg_with_path = logic.get_svg_with_path(svg_data, graph, start_p, goal_p, x_min, x_max, y_min, y_max)
+        svg_with_path = logicMangerFloor.get_svg_with_path(svg_data, graph, start_p, goal_p, x_min, x_max, y_min, y_max)
         svg_bytes = svg_with_path.encode('utf-8')
         buffer = BytesIO(svg_bytes)
         buffer.seek(0)
@@ -232,3 +234,23 @@ def add_scan():
         return jsonify({"error": str(e)}), 400
 
     
+# TODO: need to move to new endpoint file
+@bp.route(constants.START_PREDICT, methods=['GET'], endpoint='startPredict')
+def start_predict():
+    try:
+        building_id = request.args.get(constants.BUILDING_ID)
+        floor_id = request.args.get(constants.FLOOR_ID)
+        start = request.args.get('start')
+        goal = request.args.get('goal')
+        if not building_id or not floor_id or not start or not goal:
+            return jsonify({"error": "Building ID, Floor ID, start, and goal are required"}), 400
+        graph = graph_db_manger.get_graph_from_db(building_id, floor_id)
+        coarse_to_fine = graph_db_manger.get_coarse_to_fine_from_db(building_id, floor_id)
+        scan_data = floor_db_manger.get_scan_data(building_id, floor_id)
+        goal_p = doors_db_manger.get_coordinate_by_name(goal, building_id, floor_id)
+        start_p = floor_db_manger.convert_string_to_float_coordinates(start)
+        start_p = floor_db_manger.svg_to_raw(building_id, floor_id, start_p[0], start_p[1])
+        predict = Predict(graph, coarse_to_fine, scan_data, start_p, goal_p)
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500

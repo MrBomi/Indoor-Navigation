@@ -55,7 +55,8 @@ class mangerBuldings:
         y_min = building.getYMinRaw()
         y_max = building.getYMaxRaw()
         grid_map = building.getCellIdToCoords()
-        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map)
+        coarse_to_fine = building.getCoarseToFine()
+        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map, coarse_to_fine)
         return building.create_door_json()
 
     def getBuildings(self):

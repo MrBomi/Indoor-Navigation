@@ -49,7 +49,6 @@ class App:
             print("Errors found in the DXF file:")
             for error in auditor.errors:
                 print("-", error)
-
         self.extractor = None
         self.roof_area = None
         self.all_lines = None
@@ -111,7 +110,7 @@ class App:
         coarse_to_fine = self.createGreedToSvg(graph)
         one_m_space = math.floor(100 / self.unit_scale)
         grid_svg, cell_id_to_coords = SvgManager.addGridToSvg(self.all_lines, coarse_to_fine, self.utils, one_m_space)
-        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords)
+        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, coarse_to_fine)
         return building
         
     def createGreedToSvg(self, graph):

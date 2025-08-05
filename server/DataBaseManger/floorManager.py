@@ -8,7 +8,7 @@ from server.discord_logs import get_logger
 logger = get_logger(__name__)
 
 
-def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict) -> bool:
+def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coarse_to_fine: dict) -> bool:
     try:
         existing = Floor.query.get((floor_id, building_id))
         if existing:
@@ -33,7 +33,7 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
         print("✅ Floor added to DB", flush=True)
 
         try:
-            graph_ok = save_graph_to_db(building_id, floor_id, graph_dict)
+            graph_ok = save_graph_to_db(building_id, floor_id, graph_dict, coarse_to_fine)
             print("✅ Graph saved", flush=True)
             logger.info(f"Graph for floor {floor_id} in building {building_id} saved successfully")
         except Exception as e:
@@ -162,3 +162,25 @@ def add_scan_data(building_id: int, floor_id: int, scan_records: list[dict]) -> 
     db.session.commit()
     return True
 
+def get_scan_data(building_id: int, floor_id: int) -> dict:
+    floor = Floor.query.get((floor_id, building_id))
+    if not floor:
+        raise ValueError(f"Floor {floor_id} in building {building_id} not found.")
+    
+    scan_data = json.loads(floor.scan_table) if floor.scan_table else {}
+    return scan_data
+
+def svg_to_raw(building_id: int, floor_id: int, x_svg: float, y_svg: float) -> tuple[float, float]:
+    x_min_raw, x_max_raw, y_min_raw, y_max_raw = get_floor_by_id(building_id, floor_id)
+    scale = 800 / max(x_max_raw - x_min_raw, y_max_raw - y_min_raw)
+    x_raw = x_svg / scale + x_min_raw
+    y_raw = y_max_raw - (y_svg / scale)
+    return (x_raw, y_raw)
+
+def convert_string_to_float_coordinates(coord_str: str) -> tuple[float, float]:
+    try:
+        x_str, y_str = coord_str.split(',')
+        return float(x_str), float(y_str)
+    except ValueError as e:
+        print(f"[ERROR] Failed to convert string to float coordinates: {e}")
+        raise ValueError(f"Invalid coordinate string: {coord_str}") from e

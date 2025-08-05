@@ -55,6 +55,7 @@ class Graph(db.Model):
     floor_id = db.Column(db.Integer, nullable=False)
     building_id = db.Column(db.Integer, nullable=False)
     json_data = db.Column(db.Text)
+    json_coarse_to_fine = db.Column(db.Text)
 
     __table_args__ = (
         db.PrimaryKeyConstraint('floor_id', 'building_id'),

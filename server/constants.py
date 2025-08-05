@@ -2,6 +2,7 @@ BUILDING = '/building'
 FLOOR = '/floor'
 ROUTE = '/route'
 SCAN = '/scan'
+PREDICT = '/predict'
 
 
 ADD_BUILDING= f'{BUILDING}/add'
@@ -22,9 +23,13 @@ ADD_BUILDING = f'{BUILDING}/add'
 GET_FLOORS = f'{BUILDING}/getFloors'
 ADD_SCAN = f'{FLOOR}/{SCAN}'
 
+START_PREDICT = f'{PREDICT}/start'
+GET_PREDICT = f'{PREDICT}/get'
+
 
 #parameters
 BUILDING_ID = 'buildingId'
 DOOR_ID = 'doorId'
 FLOOR_ID = 'floorId'
+SIZE = 800
 

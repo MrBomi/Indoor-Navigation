@@ -12,7 +12,7 @@ import core.SvgManager as SvgManager
 
 class ManagerFloor:
     #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
-    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords):
+    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords, coarse_to_fine):
         self.graph = graph
         #self.door_points = door_points
         #self.wall_lines = wall_lines
@@ -29,6 +29,7 @@ class ManagerFloor:
         print(f"ManagerFloor initialized with {len(self.doors_data)} doors and graph with {len(self.graph)} nodes.")
         self.createDoorsData(door_points, utils)
         self.cell_id_to_coords = cell_id_to_coords
+        self.coarse_to_fine = coarse_to_fine
 
     def getSvgString(self):
         if not self.basic_svg:
@@ -79,6 +80,11 @@ class ManagerFloor:
         if not self.cell_id_to_coords:
             raise ValueError("Cell ID to coordinates mapping is not initialized.")
         return {k: list(v) for k, v in self.cell_id_to_coords.items()}
+    
+    def getCoarseToFine(self):
+        if not self.coarse_to_fine:
+            raise ValueError("Coarse to fine mapping is not initialized.")
+        return self.coarse_to_fine
 
     def find_path(self, start, goal):
         open_set = []
@@ -223,8 +229,6 @@ class ManagerFloor:
 
 
 def find_path(graph, start, goal):
-    start_p = Point(start)
-    check = Point(2680.00200641543, 1622.06208259298)
     open_set = []
     heapq.heappush(open_set, (0, start))
     came_from = {}
