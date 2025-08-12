@@ -90,7 +90,7 @@ class App:
         point2_unscaled = self.utils.unscale(point2[0], point2[1])
         distance_raw = math.sqrt((point2_unscaled[0] - point1_unscaled[0]) ** 2 + (point2_unscaled[1] - point1_unscaled[1]) ** 2)
         self.unit_scale = 1 #distance_cm / distance_raw
-        self.spacing = math.floor(20 / self.unit_scale)
+        self.spacing = 100 / self.unit_scale #math.floor(35 / self.unit_scale)
         print(f"scale: {self.unit_scale} spacing: {self.spacing}")
     
     def createFloor(self):
@@ -113,46 +113,118 @@ class App:
         building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, coarse_to_fine)
         return building
         
+    # def createGreedToSvg(self, graph):
+    #     threshold = self.spacing * math.sqrt(2) * 1.1
+    #     # Get graph nodes as Point objects
+    #     graph_points = list(graph.keys())
+    #     if not graph_points:
+    #         return {}
+
+    #     xs = [p[0] for p in graph_points]
+    #     ys = [p[1] for p in graph_points]
+
+    #     min_x, max_x = min(xs), max(xs)
+    #     min_y, max_y = min(ys), max(ys)
+
+    #     # Build KDTree for efficient search
+    #     tree = KDTree(graph_points)
+
+    #     coarse_to_fine = {}
+
+    #     # Step 1: Build coarse grid (2*spacing)
+    #     coarse_spacing = math.floor(100 / self.unit_scale)
+    #     x = round(min_x / coarse_spacing) * coarse_spacing
+    #     count_over = 0
+    #     count_less = 0
+    #     while x <= max_x:
+    #         y = round(min_y / coarse_spacing) * coarse_spacing
+    #         while y <= max_y:
+    #             center = (round(x, 6), round(y, 6))
+    #             indices = tree.query_ball_point(center, threshold)
+    #             if indices:
+    #                 nearby = [graph_points[i] for i in indices]
+    #                 if len(nearby) < 1 or len(nearby) > 25:
+    #                     if len(nearby) > 25:
+    #                         count_over += 1
+    #                     else:
+    #                         count_less += 1
+    #                 coarse_to_fine[center] = nearby
+    #             y += coarse_spacing
+    #         x += coarse_spacing
+    #     print(f"Coarse grid created with {len(coarse_to_fine)} points, {count_over} over 25 points, {count_less} less than 1 point")
+    
+    #     # 1. Gather all fine-level points from the original graph
+    #     fine_points = list(graph.keys())
+
+    #     # 2. Collect every fine point that appears in any coarse_to_fine entry
+    #     mapped_points = {p for fine_list in coarse_to_fine.values() for p in fine_list}
+
+    #     # 3. Find which fine points weren’t mapped to any coarse cell
+    #     unmapped = set(fine_points) - mapped_points
+
+    #     # 4. Report the results
+    #     if unmapped:
+    #         print(f"[WARNING] {len(unmapped)} fine points are not assigned to any coarse cell:")
+    #     else:
+    #         print("All fine points are assigned to at least one coarse cell.")
+
+    #     return coarse_to_fine
+
     def createGreedToSvg(self, graph):
-        threshold = self.spacing * math.sqrt(2) * 0.9
-        # Get graph nodes as Point objects
-        graph_points = list(graph.keys())
-        if not graph_points:
+        fine_points = list(graph.keys())
+        if not fine_points:
             return {}
 
-        xs = [p[0] for p in graph_points]
-        ys = [p[1] for p in graph_points]
-
+        # Extract min and max coordinates from fine points
+        xs = [p[0] for p in fine_points]
+        ys = [p[1] for p in fine_points]
         min_x, max_x = min(xs), max(xs)
         min_y, max_y = min(ys), max(ys)
 
-        # Build KDTree for efficient search
-        tree = KDTree(graph_points)
+        # Calculate coarse spacing based on unit scale
+        meter_size = 1.0
+        coarse_spacing_raw = meter_size * 100
 
-        coarse_to_fine = {}
-
-        # Step 1: Build coarse grid (2*spacing)
-        coarse_spacing = math.floor(100 / self.unit_scale)
-        x = round(min_x / coarse_spacing) * coarse_spacing
-        count_over = 0
-        count_less = 0
-        while x <= max_x:
-            y = round(min_y / coarse_spacing) * coarse_spacing
-            while y <= max_y:
-                center = (round(x, 6), round(y, 6))
-                indices = tree.query_ball_point(center, threshold)
-                if indices:
-                    nearby = [graph_points[i] for i in indices]
-                    if len(nearby) < 1 or len(nearby) > 4:
-                        if len(nearby) > 4:
-                            count_over += 1
-                        else:
-                            count_less += 1
-                    coarse_to_fine[center] = nearby
-                y += coarse_spacing
-            x += coarse_spacing
-        print(f"Coarse grid created with {len(coarse_to_fine)} points, {count_over} over 4 points, {count_less} less than 1 point")
-        return coarse_to_fine
+        # coarse_spacing ב־raw יחידות מחולק ל־unit_scale
+        coarse_spacing = max(
+            1,
+            math.floor(coarse_spacing_raw / self.unit_scale)
+        )
 
         
-    
+        nx = math.ceil((max_x - min_x) / coarse_spacing)
+        ny = math.ceil((max_y - min_y) / coarse_spacing)
+
+        coarse_to_fine = {}
+        
+        for ix in range(nx):
+            for iy in range(ny):
+                cx = min_x + (ix + 0.5) * coarse_spacing
+                cy = min_y + (iy + 0.5) * coarse_spacing
+                center = (round(cx, 6), round(cy, 6))
+                coarse_to_fine[center] = []
+
+        # Assign fine points to coarse cells
+        for fp in fine_points:
+            ix = int((fp[0] - min_x) // coarse_spacing)
+            iy = int((fp[1] - min_y) // coarse_spacing)
+            ix = min(max(ix, 0), nx - 1)
+            iy = min(max(iy, 0), ny - 1)
+            cx = min_x + (ix + 0.5) * coarse_spacing
+            cy = min_y + (iy + 0.5) * coarse_spacing
+            center = (round(cx, 6), round(cy, 6))
+            coarse_to_fine[center].append(fp)
+
+        coarse_to_fine = {
+            center: fines
+            for center, fines in coarse_to_fine.items()
+            if len(fines) > 1
+        }
+
+        max_fines = max(len(fines) for fines in coarse_to_fine.values())
+
+        for i in range(1, max_fines + 1):
+            count_i = sum(1 for fines in coarse_to_fine.values() if len(fines) == i)
+            print(f"{i}: {count_i} coarse cells have exactly {i} fine points")
+
+        return coarse_to_fine

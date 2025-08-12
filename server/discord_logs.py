@@ -1,7 +1,7 @@
 import logging
 import requests
 
-DISCORD_WEBHOOK = "https://discordapp.com/api/webhooks/1401133863463555153/rkwIKwIeCPlSV8yPHpYE4oYLzPZt1SLekm75SNFomoCTvcqK5ZWwxgDe6pMGrpk_dGKY" 
+DISCORD_WEBHOOK = "https://discordapp.com/api/webhooks/1401133863463555153/rkwIKwIeCPlSV8yPHpYE4oYLzPZt1SLekm75SNFomoCTvcqK5ZWwxgDe6pMGrpk_dGKY123" 
 
 class DiscordHandler(logging.Handler):
     def emit(self, record):

@@ -33,37 +33,104 @@ def is_blocked(x, y, bitmap, minx, miny, spacing):
         return bitmap[row, col] == 1
     return True
 
-def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5):
-    graph = defaultdict(list)
-    directions = [
-    ( spacing,  0), (-spacing,  0), (0,  spacing), (0, -spacing)]
+# def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5):
+#     graph = defaultdict(list)
+#     directions = [
+#     ( spacing,  0), (-spacing,  0), (0,  spacing), (0, -spacing)]
 
-    # Step 1: Create bitmap
+#     # Step 1: Create bitmap
+#     wall_thickness = spacing * wall_thickness_ratio
+#     bitmap, minx, miny, rows, cols = create_bitmap_from_walls(wall_lines, spacing, wall_thickness)
+
+#     # Step 2: Build graph from grid
+#     for pt in grid_points:
+#         x1, y1 = pt.x, pt.y
+#         if is_blocked(x1, y1, bitmap, minx, miny, spacing):
+#             continue
+#         for dx, dy in directions:
+#             x2, y2 = x1 + dx, y1 + dy
+#             if not is_blocked(x2, y2, bitmap, minx, miny, spacing):
+#                 graph[(x1, y1)].append((x2, y2))
+#                 graph[(x2, y2)].append((x1, y1))
+
+#     # Step 3: Connect doors to grid
+#     for door in door_points:
+#         door_key = (door.x, door.y)
+#         graph[door_key] = []
+#         for pt in grid_points:
+#             x, y = pt.x, pt.y
+#             if not is_blocked(x, y, bitmap, minx, miny, spacing) and Point(x, y).distance(door) <= spacing * 1.5:
+#                 graph[door_key].append((x, y))
+#                 graph[(x, y)].append(door_key)
+
+#     #visualize_bitmap(bitmap)
+
+#     return graph
+
+def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5, use_weights=False):
+    """
+    Build an 8-neighborhood grid graph (N, S, E, W + diagonals) over free cells.
+    Diagonal steps are allowed but cannot 'cut corners' through walls.
+    Optionally assigns weights: spacing for orthogonal steps, spacing*sqrt(2) for diagonals.
+    """
+    graph = defaultdict(list)
+
+    # 8 directions: orthogonal + diagonals
+    directions = [
+        ( spacing,  0), (-spacing,  0), (0,  spacing), (0, -spacing),
+        ( spacing,  spacing), ( spacing, -spacing), (-spacing,  spacing), (-spacing, -spacing)
+    ]
+
+    # Step 1: Create bitmap (occupied=1, free=0)
     wall_thickness = spacing * wall_thickness_ratio
     bitmap, minx, miny, rows, cols = create_bitmap_from_walls(wall_lines, spacing, wall_thickness)
 
-    # Step 2: Build graph from grid
+    def can_move(x1, y1, x2, y2):
+        """
+        Allow diagonal only if both adjacent orthogonal cells are free.
+        Prevents 'corner cutting' through a wall buffer.
+        """
+        if is_blocked(x2, y2, bitmap, minx, miny, spacing):
+            return False
+        dx, dy = x2 - x1, y2 - y1
+        if abs(dx) == spacing and abs(dy) == spacing:
+            # Check the two orthogonal neighbors
+            if is_blocked(x1 + dx, y1, bitmap, minx, miny, spacing):
+                return False
+            if is_blocked(x1, y1 + dy, bitmap, minx, miny, spacing):
+                return False
+        return True
+
+    # Step 2: Build graph from grid points
     for pt in grid_points:
         x1, y1 = pt.x, pt.y
         if is_blocked(x1, y1, bitmap, minx, miny, spacing):
             continue
         for dx, dy in directions:
             x2, y2 = x1 + dx, y1 + dy
-            if not is_blocked(x2, y2, bitmap, minx, miny, spacing):
-                graph[(x1, y1)].append((x2, y2))
-                graph[(x2, y2)].append((x1, y1))
+            if can_move(x1, y1, x2, y2):
+                if use_weights:
+                    cost = spacing if (dx == 0 or dy == 0) else spacing * math.sqrt(2)
+                    graph[(x1, y1)].append(((x2, y2), cost))
+                    graph[(x2, y2)].append(((x1, y1), cost))
+                else:
+                    graph[(x1, y1)].append((x2, y2))
+                    graph[(x2, y2)].append((x1, y1))
 
-    # Step 3: Connect doors to grid
+    # Step 3: Connect doors to nearby free grid nodes
     for door in door_points:
         door_key = (door.x, door.y)
-        graph[door_key] = []
+        _ = graph[door_key]  # ensure key exists in defaultdict
         for pt in grid_points:
             x, y = pt.x, pt.y
             if not is_blocked(x, y, bitmap, minx, miny, spacing) and Point(x, y).distance(door) <= spacing * 1.5:
-                graph[door_key].append((x, y))
-                graph[(x, y)].append(door_key)
-
-    #visualize_bitmap(bitmap)
+                if use_weights:
+                    cost = Point(x, y).distance(door)
+                    graph[door_key].append(((x, y), cost))
+                    graph[(x, y)].append((door_key, cost))
+                else:
+                    graph[door_key].append((x, y))
+                    graph[(x, y)].append(door_key)
 
     return graph
 

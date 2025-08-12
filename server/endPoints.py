@@ -242,6 +242,7 @@ def start_predict():
         floor_id = request.args.get(constants.FLOOR_ID)
         start = request.args.get('start')
         goal = request.args.get('goal')
+        samples = request.get_json(silent=True)
         if not building_id or not floor_id or not start or not goal:
             return jsonify({"error": "Building ID, Floor ID, start, and goal are required"}), 400
         graph = graph_db_manger.get_graph_from_db(building_id, floor_id)
@@ -250,7 +251,11 @@ def start_predict():
         goal_p = doors_db_manger.get_coordinate_by_name(goal, building_id, floor_id)
         start_p = floor_db_manger.convert_string_to_float_coordinates(start)
         start_p = floor_db_manger.svg_to_raw(building_id, floor_id, start_p[0], start_p[1])
+        start_p = (-200,1200)
         predict = Predict(graph, coarse_to_fine, scan_data, start_p, goal_p)
+        predict.debug_transition_info(start_p)
+        predict.test(samples)
+        return jsonify({"message": "Prediction completed successfully"}), 200
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
