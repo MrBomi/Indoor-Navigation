@@ -11,6 +11,11 @@ from collections import defaultdict
 from shapely.prepared import prep
 from rtree import index
 from core.Bitmap import *
+try:
+    from shapely import make_valid
+    HAS_MAKE_VALID = True
+except Exception:
+    HAS_MAKE_VALID = False
 
 class GeometryExtractor:
     def __init__(self, dxf_file, offset_cm, scale):
@@ -164,18 +169,52 @@ class GeometryExtractor:
         return (insert[0], insert[1])
 
     def generate_quantized_grid(self,geometry, spacing):
-        minx, miny, maxx, maxy = geometry.bounds
-        result = []
-        x = round(minx // spacing) * spacing
-        while x <= maxx:
-            y = round(miny // spacing) * spacing
-            while y <= maxy:
+        # minx, miny, maxx, maxy = geometry.bounds
+        # result = []
+        # x = round(minx // spacing) * spacing
+        # while x <= maxx:
+        #     y = round(miny // spacing) * spacing
+        #     while y <= maxy:
+        #         pt = Point(x, y)
+        #         if geometry.contains(pt):
+        #             result.append(pt)
+        #         y += spacing
+        #     x += spacing
+        # return result
+        if spacing <= 0:
+            raise ValueError("spacing must be positive")
+
+        epsilon_factor=1e-6
+        include_boundary=True
+        # 1) Clean geometry
+        geom = make_valid(geometry) if HAS_MAKE_VALID else geometry.buffer(0)
+
+        # 2) Tiny positive buffer to avoid micro-holes/slivers
+        eps = epsilon_factor * spacing
+        geom_for_test = geom.buffer(+eps) if include_boundary else geom.buffer(-eps)
+
+        # 3) Prepare for fast/robust contains-like test
+        g = prep(geom_for_test)
+
+        minx, miny, maxx, maxy = geom.bounds
+        ox, oy = (0.0, 0.0)
+
+        # 4) Align to origin and compute integer counts (no FP accumulation)
+        start_x = ox + math.floor((minx - ox) / spacing) * spacing
+        start_y = oy + math.floor((miny - oy) / spacing) * spacing
+        nx = int(math.ceil((maxx - start_x) / spacing)) + 1
+        ny = int(math.ceil((maxy - start_y) / spacing)) + 1
+
+        pts = []
+        for i in range(nx):
+            x = start_x + i * spacing
+            for j in range(ny):
+                y = start_y + j * spacing
                 pt = Point(x, y)
-                if geometry.contains(pt):
-                    result.append(pt)
-                y += spacing
-            x += spacing
-        return result
+                if g.covers(pt):
+                    pts.append(pt)
+
+        return pts
 
     def lobby_nodes(self, roof_area,roof_layer_name):
         lobby = []

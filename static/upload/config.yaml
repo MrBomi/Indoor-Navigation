@@ -3,10 +3,10 @@ app:
   version: 1.0
 
 file:
-  input_name: waston_floor.dxf
-  output_name: static/output/waston_floor.graphml
-  svg_output_name: static/output/waston_floor.svg
-  json_output_name: static/output/waston_floor_points.json
+  input_name: building001-0_floor2.dxf
+  output_name: static/output/building001-0_floor2.graphml
+  svg_output_name: static/output/building001-0_floor2.svg
+  json_output_name: static/output/building001-0_floor2_points.json
   precision: 1
 
 graph:
@@ -16,16 +16,16 @@ graph:
 
 layers:
   wall_layer:
-    name: A_WALL_PRTN, A_SEEN_LT, A_STRS_RAIL,A_SEEN_MD
+    name: A-WALL
     color: "#000000"
     opacity: 0.5
 
   door_layer:
-    name: A_DOOR
+    name: A-DOOR
     color: "#FF0000"
     opacity: 0.5
 
   roof_layer:
-    name: A_ROOF
+    name: A-ROOF
     color: "#00FF00"
     opacity: 0.5

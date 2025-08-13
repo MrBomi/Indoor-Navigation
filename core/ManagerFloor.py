@@ -72,8 +72,8 @@ class ManagerFloor:
         return self.y_max_raw
     
     def getCellIdToCoords(self):
-        if not self.cell_id_to_coords:
-            raise ValueError("Cell ID to coordinates mapping is not initialized.")
+        # if not self.cell_id_to_coords:
+        #     raise ValueError("Cell ID to coordinates mapping is not initialized.")
         return self.cell_id_to_coords
 
     def getCellIdCoordsJson(self):

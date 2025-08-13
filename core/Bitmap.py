@@ -1,4 +1,5 @@
 
+import math
 import numpy as np
 from shapely.geometry import Point, LineString
 from collections import defaultdict
@@ -94,46 +95,58 @@ def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_
             return False
         dx, dy = x2 - x1, y2 - y1
         if abs(dx) == spacing and abs(dy) == spacing:
-            # Check the two orthogonal neighbors
             if is_blocked(x1 + dx, y1, bitmap, minx, miny, spacing):
                 return False
             if is_blocked(x1, y1 + dy, bitmap, minx, miny, spacing):
                 return False
         return True
 
-    # Step 2: Build graph from grid points
+    def add_edge(u, v, cost=None):
+        """Append edge u->v if it doesn't already exist (handles weighted/unweighted)."""
+        if use_weights:
+            # avoid duplicates by checking neighbor coordinate
+            if not any(nbr == v for (nbr, _) in graph[u]):
+                graph[u].append((v, cost))
+        else:
+            if v not in graph[u]:
+                graph[u].append(v)
+
+    # Step 2: Pre-populate ALL free grid nodes so isolated nodes exist in the graph
+    free_nodes = []
     for pt in grid_points:
-        x1, y1 = pt.x, pt.y
-        if is_blocked(x1, y1, bitmap, minx, miny, spacing):
-            continue
+        x, y = pt.x, pt.y
+        if not is_blocked(x, y, bitmap, minx, miny, spacing):
+            graph[(x, y)]  # ensure key exists with empty neighbor list
+            free_nodes.append((x, y))
+
+    # Step 3: Add edges between neighbors (no duplicates)
+    for (x1, y1) in free_nodes:
         for dx, dy in directions:
             x2, y2 = x1 + dx, y1 + dy
             if can_move(x1, y1, x2, y2):
                 if use_weights:
                     cost = spacing if (dx == 0 or dy == 0) else spacing * math.sqrt(2)
-                    graph[(x1, y1)].append(((x2, y2), cost))
-                    graph[(x2, y2)].append(((x1, y1), cost))
+                    add_edge((x1, y1), (x2, y2), cost)
+                    add_edge((x2, y2), (x1, y1), cost)
                 else:
-                    graph[(x1, y1)].append((x2, y2))
-                    graph[(x2, y2)].append((x1, y1))
+                    add_edge((x1, y1), (x2, y2))
+                    add_edge((x2, y2), (x1, y1))
 
-    # Step 3: Connect doors to nearby free grid nodes
+    # Step 4: Connect doors to nearby free grid nodes
     for door in door_points:
         door_key = (door.x, door.y)
-        _ = graph[door_key]  # ensure key exists in defaultdict
-        for pt in grid_points:
-            x, y = pt.x, pt.y
-            if not is_blocked(x, y, bitmap, minx, miny, spacing) and Point(x, y).distance(door) <= spacing * 1.5:
+        graph[door_key]  # ensure door exists even if it doesn't connect to anything
+        for (x, y) in free_nodes:
+            if Point(x, y).distance(door) <= spacing * 1.5:
                 if use_weights:
                     cost = Point(x, y).distance(door)
-                    graph[door_key].append(((x, y), cost))
-                    graph[(x, y)].append((door_key, cost))
+                    add_edge(door_key, (x, y), cost)
+                    add_edge((x, y), door_key, cost)
                 else:
-                    graph[door_key].append((x, y))
-                    graph[(x, y)].append(door_key)
+                    add_edge(door_key, (x, y))
+                    add_edge((x, y), door_key)
 
     return graph
-
 def visualize_bitmap(bitmap, title="Bitmap Visualization"):
     plt.figure(figsize=(10, 10))
     plt.imshow(bitmap, cmap='gray_r', origin='upper')
