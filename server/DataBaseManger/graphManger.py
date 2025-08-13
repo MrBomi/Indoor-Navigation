@@ -1,13 +1,19 @@
 from server.models import Graph, db
 import json
+from typing import Dict, Tuple, Set, Iterable
+Coord = Tuple[float, float]
+CellID = int
+Bounds = Tuple[float, float, float, float]
 
-def save_graph_to_db(building_id: int, floor_id: int, graph_dict: dict, coarse_to_fine: dict) -> bool:
+def save_graph_to_db(building_id: int, floor_id: int, graph_dict: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict) -> bool:
     try:
         #json_graph = json.dumps(graph_dict) 
         json_graph = json.dumps(stringify_graph_keys(graph_dict))
-        json_coarse_to_fine = json.dumps(stringify_graph_keys(coarse_to_fine))
+        json_coords_to_cell = coord_to_cells_to_json(coords_to_cell)
+        json_cell_to_coords = cell_to_coords_to_json(cell_to_coords)
+        json_grid_graph = cell_to_cells_to_json(grid_graph)
 
-        graph = Graph(building_id=building_id, floor_id=floor_id, json_data=json_graph, json_coarse_to_fine=json_coarse_to_fine)
+        graph = Graph(building_id=building_id, floor_id=floor_id, json_data=json_graph, json_coords_to_cell=json_coords_to_cell, json_cell_to_coords=json_cell_to_coords, json_grid_graph=json_grid_graph)
 
         existing = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
         if existing:
@@ -54,3 +60,52 @@ def unstringify_graph_keys(d: dict) -> dict:
     return new_dict
 
 
+def coord_to_cells_to_json(coord_to_cells: Dict[Coord, Set[CellID]]) -> str:
+    """
+    Convert Dict[(x,y), set(CellID)] into a JSON string:
+      - tuple keys (x,y) become "x,y" strings
+      - sets become lists
+    """
+    serializable = {f"{x},{y}": list(cells) for (x, y), cells in coord_to_cells.items()}
+    return json.dumps(serializable)
+
+def cell_to_coords_to_json(cell_to_coords: Dict[CellID, Set[Coord]]) -> str:
+    """
+    Convert Dict[CellID, set((x,y))] into a JSON string:
+      - sets of tuples become lists of [x,y] lists
+    """
+    serializable = {cid: [list(coord) for coord in coords] for cid, coords in cell_to_coords.items()}
+    return json.dumps(serializable)
+
+def cell_to_cells_to_json(cell_to_cells: Dict[CellID, Set[CellID]]) -> str:
+    """
+    Convert Dict[CellID, set(CellID)] into a JSON string:
+      - sets become lists
+    """
+    serializable = {cid: list(neighbors) for cid, neighbors in cell_to_cells.items()}
+    return json.dumps(serializable)
+
+def json_to_coord_to_cells(json_str: str) -> Dict[Coord, Set[CellID]]:
+    """
+    Convert JSON string back to Dict[(x,y), set(CellID)].
+    Keys in JSON are "x,y" strings -> converted to (float(x), float(y)) tuples.
+    Lists in JSON -> converted to sets.
+    """
+    data = json.loads(json_str)
+    return {tuple(map(float, key.split(","))): set(val) for key, val in data.items()}
+
+def json_to_cell_to_coords(json_str: str) -> Dict[CellID, Set[Coord]]:
+    """
+    Convert JSON string back to Dict[CellID, set((x,y))].
+    Lists in JSON -> converted to sets of (float(x), float(y)).
+    """
+    data = json.loads(json_str)
+    return {int(cid): {tuple(map(float, coord)) for coord in coords} for cid, coords in data.items()}
+
+def json_to_cell_to_cells(json_str: str) -> Dict[CellID, Set[CellID]]:
+    """
+    Convert JSON string back to Dict[CellID, set(CellID)].
+    Lists in JSON -> converted to sets of ints.
+    """
+    data = json.loads(json_str)
+    return {int(cid): set(map(int, neighbors)) for cid, neighbors in data.items()}

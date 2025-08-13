@@ -8,7 +8,7 @@ from server.discord_logs import get_logger
 logger = get_logger(__name__)
 
 
-def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coarse_to_fine: dict) -> bool:
+def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict) -> bool:
     try:
         existing = Floor.query.get((floor_id, building_id))
         if existing:
@@ -33,7 +33,7 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
         print("✅ Floor added to DB", flush=True)
 
         try:
-            graph_ok = save_graph_to_db(building_id, floor_id, graph_dict, coarse_to_fine)
+            graph_ok = save_graph_to_db(building_id, floor_id, graph_dict, coords_to_cell, cell_to_coords, grid_graph)
             print("✅ Graph saved", flush=True)
             logger.info(f"Graph for floor {floor_id} in building {building_id} saved successfully")
         except Exception as e:

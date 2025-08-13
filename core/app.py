@@ -79,6 +79,7 @@ class App:
         all_lines_to_svg = [[self.utils.scale(x, y) for x, y in line.coords] for line in self.all_lines]
         door_points_to_svg = [self.utils.scale(pt.x, pt.y) for pt in self.door_points]
         self.svg_file = SvgManager.createSvgDrawing(self.utils.width, self.utils.height, all_lines_to_svg, door_points_to_svg)
+        self.svg_grid = SvgManager.createSvgDrawing(self.utils.width, self.utils.height, all_lines_to_svg, door_points_to_svg)
         return self.svg_file
     
     def continueAddBuilding(self, point1, point2, distance_cm):
@@ -107,11 +108,11 @@ class App:
             x, y = self.utils.scale(pt.x, pt.y)
             doors_json.append({"id": i, "x": x, "y": y})
 
-        coarse_to_fine = self.createGreedToSvg(graph)
+        #coarse_to_fine = self.createGreedToSvg(graph)
         one_m_space = math.floor(100 / self.unit_scale)
         #grid_svg, cell_id_to_coords = SvgManager.addGridToSvg(self.all_lines, coarse_to_fine, self.utils, one_m_space)
-        grid_svg, cell_id_to_coords = SvgManager.draw_grid(self.svg_file, graph, self.utils, self.spacing)
-        node_to_cell_ids, cell_id_to_nodes = memberships_from_drawing(
+        grid_svg, cell_id_to_coords = SvgManager.draw_grid(self.svg_grid, graph, self.utils, self.spacing)
+        node_to_cell, cell_to_nodes = memberships_from_drawing(
         graph,
         cell_id_to_coords,
         spacing_units=50,   # 0.5 m in model units
@@ -130,7 +131,7 @@ class App:
             if cid in adj:
                 print(cid, "->", sorted(adj[cid]))
 
-        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, coarse_to_fine)
+        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, cell_to_nodes, node_to_cell, adj)
         return building
         
     # def createGreedToSvg(self, graph):

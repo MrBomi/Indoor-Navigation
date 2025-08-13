@@ -219,8 +219,8 @@ def draw_grid(
     utils,
     spacing_units=50, # 0.5 m == 50 model units -> 1.0 m == 100
     draw_cells=True,
-    draw_edges=True,
-    draw_nodes=True,
+    draw_edges=False,
+    draw_nodes=False,
     label_cells=True,
     origin=(0.0, 0.0),   # model-units origin the grid is aligned to
 ):
@@ -288,7 +288,7 @@ def draw_grid(
                                       insert=(cx_px, cy_px),
                                       text_anchor="middle",
                                       alignment_baseline="middle",
-                                      font_size=font_size))
+                                      font_size=4))
 
             # store cell center in model units
             center_x_mu = (minx_mu + maxx_mu) / 2.0

@@ -5,9 +5,14 @@ from scipy.spatial import KDTree
 
 
 class Predict:
-    def __init__(self, graph : dict, coarse_to_fine : dict, scan_data: dict, start: tuple, goal: tuple):
+    def __init__(self, graph : dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict, scan_data: dict, start: tuple, goal: tuple):
         self.graph = graph
-        self.coarse_to_fine = coarse_to_fine
+        self.coords_to_cell = coords_to_cell
+        self.cell_to_coords = cell_to_coords
+        self.grid_graph = grid_graph
+        self.scan_data = scan_data
+        self.start = start
+        self.goal = goal
         self.gamma = 0.5
         self.epsilon = 0.05
         self.sigma = 0.1
@@ -28,10 +33,10 @@ class Predict:
         #     self._to_coord(k): v
         #     for k, v in scan_data.items()
         # }
-        self.coarse_points = list(coarse_to_fine.keys())
+        #self.coarse_points = list(coarse_to_fine.keys())
         self._kd_coarse = KDTree(self.coarse_points)
 
-        self.scan_data = self.fix_scan(scan_data)
+        #self.scan_data = self.fix_scan(scan_data)
         self.cells = list(self.scan_data.keys())
         self.cell_to_idx = {
             coord: idx
@@ -46,7 +51,7 @@ class Predict:
         start_p = self._find_closest_fine(start)
         self.path = find_path(graph, start_p, goal)        
         
-        self._build_neighbors()
+        #self._build_neighbors()
 
         self._init_fingerprints()
         
@@ -145,7 +150,7 @@ class Predict:
         path_coarse = set()
         for fine_coord in self.path:
             coord = self._to_coord(fine_coord)
-            for coarse_coord in self.fine_to_coarse.get(coord, []):
+            for coarse_coord in self.coords_to_cell.get(coord, set()):
                 path_coarse.add(coarse_coord)
 
         path_idxs = []
@@ -175,7 +180,7 @@ class Predict:
     def _init_memory(self, start):
         self.memory = np.zeros(self.M, dtype=float)
         #start_fine = self._to_coord(start)
-        coarse_list = self.fine_to_coarse.get(start)
+        coarse_list = self.coords_to_cell.get(start)
         if not coarse_list:
             raise ValueError(f"Start point {start} not found in coarse grid.")
 

@@ -12,7 +12,7 @@ import core.SvgManager as SvgManager
 
 class ManagerFloor:
     #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
-    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords, coarse_to_fine):
+    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords, cell_to_coords, coords_to_cell, grid_graph):
         self.graph = graph
         #self.door_points = door_points
         #self.wall_lines = wall_lines
@@ -29,7 +29,9 @@ class ManagerFloor:
         print(f"ManagerFloor initialized with {len(self.doors_data)} doors and graph with {len(self.graph)} nodes.")
         self.createDoorsData(door_points, utils)
         self.cell_id_to_coords = cell_id_to_coords
-        self.coarse_to_fine = coarse_to_fine
+        self.cell_to_coords = cell_to_coords
+        self.coords_to_cell = coords_to_cell
+        self.grid_graph = grid_graph
 
     def getSvgString(self):
         if not self.basic_svg:
@@ -85,6 +87,21 @@ class ManagerFloor:
         if not self.coarse_to_fine:
             raise ValueError("Coarse to fine mapping is not initialized.")
         return self.coarse_to_fine
+    
+    def getGridGraph(self):
+        if not self.grid_graph:
+            raise ValueError("Grid graph is not initialized.")
+        return self.grid_graph
+    
+    def getCellToCoords(self):
+        if not self.cell_to_coords:
+            raise ValueError("Cell to coordinates mapping is not initialized.")
+        return self.cell_to_coords
+
+    def getCoordsToCell(self):
+        if not self.coords_to_cell:
+            raise ValueError("CCoordinates to cell mapping is not initialized.")
+        return self.coords_to_cell
 
     def find_path(self, start, goal):
         open_set = []
