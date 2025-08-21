@@ -385,7 +385,7 @@ def draw_grid_flutter(
                 size=(w_px, h_px),
                 id=str(idx),
                 fill="blue", **{"fill-opacity": "0.10"},
-                stroke="#000408", **{"stroke-width": "1"}, **{"stroke-opacity": "1"}
+                stroke="#000408", **{"stroke-width": "0.3"}, **{"stroke-opacity": "1"}
             ))
 
             if label_cells:
