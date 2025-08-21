@@ -398,7 +398,7 @@ def draw_grid_flutter(
                     insert=(cx_px, cy_px),
                     text_anchor="middle",
                     dominant_baseline="middle",   # better cross-renderer support than alignment_baseline
-                    font_size=4,
+                    font_size=2.5,
                     fill="black"
                 ))
 
