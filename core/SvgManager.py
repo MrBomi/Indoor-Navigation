@@ -304,3 +304,118 @@ def draw_grid(
             nodes_g.add(svg.circle(center=(cx, cy), r=r))
 
     return svg, cell_id_to_coords
+
+
+def draw_grid_flutter(
+    svg,
+    graph,
+    utils,
+    spacing_units: float = 50.0,   # 0.5 m == 50 model units -> 1.0 m == 100
+    draw_cells: bool = True,
+    draw_edges: bool = False,
+    draw_nodes: bool = False,
+    label_cells: bool = True,
+    origin=(0.0, 0.0),             # model-units origin the grid is aligned to
+):
+
+    # -------------------------------
+    # 1) Collect nodes and unique edges
+    # -------------------------------
+    nodes = set()
+    edges = set()
+    for u, nbrs in graph.items():
+        nodes.add(u)
+        for v in nbrs:
+            nodes.add(v)
+            if u != v:
+                a, b = (u, v) if u <= v else (v, u)
+                edges.add((a, b))
+
+    # -------------------------------
+    # 2) Optional: draw edges (light)
+    # -------------------------------
+    if draw_edges and edges:
+        edges_g = svg.add(svg.g(id="graph-edges", fill="none"))
+        for (a, b) in edges:
+            x1, y1 = utils.scale(a[0], a[1])
+            x2, y2 = utils.scale(b[0], b[1])
+            # Apply stroke directly on <line> (Flutter-safe)
+            edges_g.add(svg.line(
+                start=(x1, y1), end=(x2, y2),
+                stroke="#888", **{"stroke-width": "0.8"}
+            ))
+
+    # -------------------------------
+    # 3) Bucket nodes into 1 m cells
+    # -------------------------------
+    big = 2 * spacing_units               # size of a 1 m cell in MU
+    ox, oy = origin
+    cell1m_to_nodes = {}
+    for (x, y) in nodes:
+        ix = int(math.floor((x - ox) / big))
+        iy = int(math.floor((y - oy) / big))
+        cell1m_to_nodes.setdefault((ix, iy), set()).add((x, y))
+
+    # -------------------------------
+    # 4) Draw 1 m cells + labels + map cell_id -> center (MU)
+    # -------------------------------
+    cell_id_to_coords = {}
+    if draw_cells and cell1m_to_nodes:
+        cells_g  = svg.add(svg.g(id="grid-1m-cells"))
+        labels_g = svg.add(svg.g(id="grid-1m-labels"))
+
+        # Sort by (ix, iy). If you want row-major (y first), change key to key=lambda t: (t[1], t[0])
+        for idx, (ix, iy) in enumerate(sorted(cell1m_to_nodes.keys()), start=1):
+            # Bounds in model units (MU)
+            minx_mu = ox + ix * big
+            miny_mu = oy + iy * big
+            maxx_mu = minx_mu + big
+            maxy_mu = miny_mu + big
+
+            # Convert MU bounds to pixel rectangle
+            x0_px, y0_px = utils.scale(minx_mu, miny_mu)
+            x1_px, y1_px = utils.scale(maxx_mu, maxy_mu)
+            w_px,  h_px  = abs(x1_px - x0_px), abs(y1_px - y0_px)
+            left_px, top_px = min(x0_px, x1_px), min(y0_px, y1_px)
+
+            # Draw the cell rectangle.
+            # IMPORTANT (Flutter): provide visual attributes on the <rect> itself.
+            cells_g.add(svg.rect(
+                insert=(left_px, top_px),
+                size=(w_px, h_px),
+                id=str(idx),
+                fill="blue", **{"fill-opacity": "0.10"},
+                stroke="#1565c0", **{"stroke-width": "1"}, **{"stroke-opacity": "1"}
+            ))
+
+            if label_cells:
+                # Center of the rectangle in pixels for text placement
+                cx_px, cy_px = left_px + w_px / 2.0, top_px + h_px / 2.0
+                # Adapt font-size to fit small cells; clamp to >= 7 px
+                font_size = max(7, min(w_px, h_px) / max(2.2, len(str(idx))))
+                labels_g.add(svg.text(
+                    str(idx),
+                    insert=(cx_px, cy_px),
+                    text_anchor="middle",
+                    dominant_baseline="middle",   # better cross-renderer support than alignment_baseline
+                    font_size=font_size,
+                    fill="black"
+                ))
+
+            # Store center in MU (not pixels)
+            center_x_mu = (minx_mu + maxx_mu) / 2.0
+            center_y_mu = (miny_mu + maxy_mu) / 2.0
+            cell_id_to_coords[idx] = (center_x_mu, center_y_mu)
+
+    # -------------------------------
+    # 5) Optional: draw node dots
+    # -------------------------------
+    if draw_nodes and nodes:
+        nodes_g = svg.add(svg.g(id="graph-nodes"))
+        scale = getattr(utils, "svg_scale", 1.0)
+        r = max(0.5, spacing_units * scale * 0.05)
+        for (x, y) in nodes:
+            cx, cy = utils.scale(x, y)
+            nodes_g.add(svg.circle(center=(cx, cy), r=r, fill="#1976d2"))
+
+    return svg, cell_id_to_coords

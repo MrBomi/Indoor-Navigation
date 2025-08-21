@@ -111,7 +111,8 @@ class App:
         #coarse_to_fine = self.createGreedToSvg(graph)
         one_m_space = math.floor(100 / self.unit_scale)
         #grid_svg, cell_id_to_coords = SvgManager.addGridToSvg(self.all_lines, coarse_to_fine, self.utils, one_m_space)
-        grid_svg, cell_id_to_coords = SvgManager.draw_grid(self.svg_grid, graph, self.utils, self.spacing)
+        #grid_svg, cell_id_to_coords = SvgManager.draw_grid(self.svg_grid, graph, self.utils, self.spacing)
+        grid_svg, cell_id_to_coords = SvgManager.draw_grid_flutter(self.svg_grid, graph, self.utils, self.spacing)
         node_to_cell, cell_to_nodes = memberships_from_drawing(
         graph,
         cell_id_to_coords,
