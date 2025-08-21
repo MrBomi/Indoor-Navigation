@@ -51,7 +51,7 @@ class Predict:
         start_p = self._find_closest_fine(start)
         self.path = find_path(graph, start_p, goal)        
         
-        #self._build_neighbors()
+        self._build_neighbors()
 
         self._init_fingerprints()
         

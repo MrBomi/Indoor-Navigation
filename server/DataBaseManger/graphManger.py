@@ -109,3 +109,17 @@ def json_to_cell_to_cells(json_str: str) -> Dict[CellID, Set[CellID]]:
     """
     data = json.loads(json_str)
     return {int(cid): set(map(int, neighbors)) for cid, neighbors in data.items()}
+
+def get_json_coord_to_cell(building_id: int, floor_id: int) -> str:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No coords to cell mapping found for building ID {building_id} and floor ID {floor_id}")
+
+    return json_to_coord_to_cells(graph_record.json_coords_to_cell)
+
+def get_json_cell_to_coords(building_id: int, floor_id: int) -> str:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No cell to coords mapping found for building ID {building_id} and floor ID {floor_id}")
+
+    return json_to_cell_to_coords(graph_record.json_cell_to_coords)
