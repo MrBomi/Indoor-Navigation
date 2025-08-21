@@ -261,7 +261,7 @@ def draw_grid(
     cell_id_to_coords = {}
     if draw_cells and cell1m_to_nodes:
         cells_g  = svg.add(svg.g(id="grid-1m-cells",  fill="blue",  fill_opacity=0.10,
-                                 stroke="black", stroke_width=0.5))
+                                 stroke="red", stroke_width=0.5))
         labels_g = svg.add(svg.g(id="grid-1m-labels", fill="black"))
 
         for idx, (ix, iy) in enumerate(sorted(cell1m_to_nodes.keys()), start=1):
