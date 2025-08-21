@@ -385,7 +385,7 @@ def draw_grid_flutter(
                 size=(w_px, h_px),
                 id=str(idx),
                 fill="blue", **{"fill-opacity": "0.10"},
-                stroke="#1565c0", **{"stroke-width": "1"}, **{"stroke-opacity": "1"}
+                stroke="#000408", **{"stroke-width": "1"}, **{"stroke-opacity": "1"}
             ))
 
             if label_cells:
@@ -398,7 +398,7 @@ def draw_grid_flutter(
                     insert=(cx_px, cy_px),
                     text_anchor="middle",
                     dominant_baseline="middle",   # better cross-renderer support than alignment_baseline
-                    font_size=font_size,
+                    font_size=4,
                     fill="black"
                 ))
 
