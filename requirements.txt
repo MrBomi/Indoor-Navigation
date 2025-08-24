@@ -14,5 +14,5 @@ svgwrite==1.4.3
 psycopg2-binary==2.9.10
 requests==2.32.4
 boto3==1.40.16
-botocore==1.46.16
+#botocore==1.46.16
 pandas==2.3.2
