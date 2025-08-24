@@ -51,4 +51,5 @@ class Utils:
         raw_y = self.y_max_raw - (scaled_y / self.svg_scale)
         return raw_x, raw_y
 
-
+    def get_unit_size(self):
+        return self.svg_scale

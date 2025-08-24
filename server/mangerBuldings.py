@@ -58,7 +58,8 @@ class mangerBuldings:
         cell_to_coords = building.getCellToCoords()
         coords_to_cell = building.getCoordsToCell()
         grid_graph = building.getGridGraph()
-        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map, coords_to_cell, cell_to_coords, grid_graph)
+        one_cm_svg = building.getOneCmSvg()
+        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map, coords_to_cell, cell_to_coords, grid_graph, one_cm_svg)
         return building.create_door_json()
 
     def getBuildings(self):

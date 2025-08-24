@@ -1,14 +1,18 @@
 from flask import json
+from typing import BinaryIO
 from server.models import Floor, Building
 from server.extensions import db
 from server.DataBaseManger.graphManger import save_graph_to_db
 from server.DataBaseManger.doorsManger import save_doors_to_db
 from server.discord_logs import get_logger
+import server.DataBaseManger.filesManager as fm
+import pandas as pd
+import csv
 
 logger = get_logger(__name__)
 
 
-def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict) -> bool:
+def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict, one_cm_svg: float) -> bool:
     try:
         existing = Floor.query.get((floor_id, building_id))
         if existing:
@@ -25,7 +29,8 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
             x_min=x_min, x_max=x_max,
             y_min=y_min, y_max=y_max,
             building_id=building_id,
-            grid_map=floor_grid_map
+            grid_map=floor_grid_map,
+            one_cm_svg=one_cm_svg
         )
         db.session.add(floor)
         db.session.commit()
@@ -184,3 +189,45 @@ def convert_string_to_float_coordinates(coord_str: str) -> tuple[float, float]:
     except ValueError as e:
         print(f"[ERROR] Failed to convert string to float coordinates: {e}")
         raise ValueError(f"Invalid coordinate string: {coord_str}") from e
+    
+def upload_floor_scan_table(building_id: int, floor_id: int, scan_table: BinaryIO) -> bool:
+    try:
+        if not is_floor_exists(building_id, floor_id):
+            raise ValueError(f"Floor {floor_id} in building {building_id} does not exist.")
+        file_key = f"building_{building_id}/floor_{floor_id}/scan_table.csv"
+        fm.upload_to_r2(scan_table, file_key, content_type="text/csv")
+        print(f"✅ Scan table for floor {floor_id} in building {building_id} uploaded successfully.", flush=True)
+        return True
+    except Exception as e:
+        print(f"[ERROR] Failed to upload scan table for floor {floor_id} in building {building_id}: {e}", flush=True)
+        return False
+    
+def download_floor_scan_table(building_id: int, floor_id: int) -> pd.DataFrame:
+    try:
+        if not is_floor_exists(building_id, floor_id):
+            raise ValueError(f"Floor {floor_id} in building {building_id} does not exist.")
+        file_key = f"building_{building_id}/floor_{floor_id}/scan_table.csv"
+        file_bytes = fm.download_from_r2(file_key)
+        from io import StringIO
+        s = str(file_bytes, 'utf-8')
+        data = StringIO(s) 
+        df = pd.read_csv(data)
+        print(f"✅ Scan table for floor {floor_id} in building {building_id} downloaded successfully.", flush=True)
+        return df
+    except FileNotFoundError:
+        print(f"[ERROR] Scan table for floor {floor_id} in building {building_id} not found in R2.", flush=True)
+        return pd.DataFrame()  # Return empty DataFrame if file not found
+    except Exception as e:
+        print(f"[ERROR] Failed to download scan table for floor {floor_id} in building {building_id}: {e}", flush=True)
+        return pd.DataFrame()
+
+def get_one_cm_svg(building_id: int, floor_id: int) -> float:
+    try:
+        floor = Floor.query.get((floor_id, building_id))
+        if floor:
+            return floor.one_cm_svg
+        else:
+            raise ValueError(f"Floor with ID {floor_id} in building {building_id} not found.")
+    except Exception as e:
+        print(f"[ERROR] Failed to retrieve one_cm_svg for floor {floor_id} in building {building_id}: {e}")
+        return -1.0

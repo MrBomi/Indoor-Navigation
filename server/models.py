@@ -18,7 +18,8 @@ class Floor(db.Model):
     y_min = db.Column(db.Float)
     y_max = db.Column(db.Float)
     grid_map = db.Column(db.Text)
-    scan_table = db.Column(db.String)  # Default table name for scans 
+    scan_table = db.Column(db.String)  # Default table name for scans
+    one_cm_svg = db.Column(db.Float)  # SVG representation at 1cm scale
     doors = db.relationship('Door', backref='building', cascade='all, delete-orphan')
     graph = db.relationship('Graph', uselist=False, backref='building')
     building_id = db.Column(db.Integer, db.ForeignKey('buildings.id'), nullable=False)

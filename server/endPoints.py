@@ -233,7 +233,6 @@ def add_scan():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-    
 # TODO: need to move to new endpoint file
 @bp.route(constants.START_PREDICT, methods=['GET'], endpoint='startPredict')
 def start_predict():
@@ -258,6 +257,37 @@ def start_predict():
         predict.debug_transition_info(start_p)
         predict.test(samples)
         return jsonify({"message": "Prediction completed successfully"}), 200
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+@bp.route(constants.UPLOAD_SCAN, methods=['POST'], endpoint='uploadScanTable')
+def upload_scan_table():
+    try:
+        building_id = request.args.get(constants.BUILDING_ID)
+        floor_id = request.args.get(constants.FLOOR_ID)
+        if 'scan' not in request.files:
+            return jsonify({"error": "No scan part in the request"}), 400
+        file = request.files['scan']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        if not building_id or not floor_id:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        floor_db_manger.upload_floor_scan_table(building_id, floor_id, file.stream)
+        return jsonify({"message": "Scan table uploaded successfully"}), 200
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+@bp.route(constants.GET_ONE_CM_SVG, methods=['GET'])
+def get_one_cm_svg():
+    try:
+        building_id = request.args.get(constants.BUILDING_ID)
+        floor_id = request.args.get(constants.FLOOR_ID)
+        if not building_id or not floor_id:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        one_cm_svg = floor_db_manger.get_one_cm_svg(int(building_id), int(floor_id))
+        return jsonify({"one_cm_svg": one_cm_svg}), 200
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500

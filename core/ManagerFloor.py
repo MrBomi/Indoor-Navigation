@@ -12,7 +12,7 @@ import core.SvgManager as SvgManager
 
 class ManagerFloor:
     #def __init__(self, graph, door_points, wall_lines, basic_svg, utils, svg_path)
-    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords, cell_to_coords, coords_to_cell, grid_graph):
+    def __init__(self, graph, door_points, basic_svg, grid_svg, utils, cell_id_to_coords, cell_to_coords, coords_to_cell, grid_graph, one_cm_svg):
         self.graph = graph
         #self.door_points = door_points
         #self.wall_lines = wall_lines
@@ -32,7 +32,11 @@ class ManagerFloor:
         self.cell_to_coords = cell_to_coords
         self.coords_to_cell = coords_to_cell
         self.grid_graph = grid_graph
+        self.one_cm_svg = one_cm_svg
 
+    def getOneCmSvg(self):
+        return self.one_cm_svg
+    
     def getSvgString(self):
         if not self.basic_svg:
             raise ValueError("Basic SVG is not initialized.")

@@ -132,7 +132,9 @@ class App:
             if cid in adj:
                 print(cid, "->", sorted(adj[cid]))
 
-        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, cell_to_nodes, node_to_cell, adj)
+        one_cm_svg = (1 / self.unit_scale) * self.utils.get_unit_size() 
+        print(f"one cm in svg units: {one_cm_svg}")
+        building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, cell_to_nodes, node_to_cell, adj, one_cm_svg)
         return building
         
     # def createGreedToSvg(self, graph):

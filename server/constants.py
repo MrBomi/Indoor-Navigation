@@ -22,6 +22,8 @@ GET_GRID_SVG = f'{FLOOR}/getGridSvg'
 ADD_BUILDING = f'{BUILDING}/add'
 GET_FLOORS = f'{BUILDING}/getFloors'
 ADD_SCAN = f'{FLOOR}/{SCAN}'
+UPLOAD_SCAN = f'{FLOOR}/{SCAN}/upload'
+GET_ONE_CM_SVG = f'{FLOOR}/getOneCmSvg'
 
 START_PREDICT = f'{PREDICT}/start'
 GET_PREDICT = f'{PREDICT}/get'
