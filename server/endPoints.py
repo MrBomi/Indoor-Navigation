@@ -16,6 +16,7 @@ import core.ManagerFloor as logicMangerFloor
 from core.predict.predict import Predict
 from server.discord_logs import get_logger
 bp = Blueprint('building', __name__)
+from core.predict.wknn_service import predict_top1 as wknn_predict_top1
 
 logger = get_logger(__name__)
 
@@ -291,6 +292,41 @@ def get_one_cm_svg():
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+    
+
+@bp.route(constants.PREDICT_TOP1, methods=['POST'], endpoint='predictTop1')
+def predict_top1_endpoint():
+    """
+    Body:
+    {
+      "building_id": 1,
+      "floor_id": 3,
+      "featureVector": { "<bssid>": -67, ... }
+    }
+    """
+    try:
+        data = request.get_json(force=True)
+        building_id = data.get('building_id')
+        floor_id    = data.get('floor_id')
+        scan_dict   = data.get('featureVector')
+
+        if building_id is None or floor_id is None or not isinstance(scan_dict, dict):
+            return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
+
+        label, conf = wknn_predict_top1(int(building_id), int(floor_id), scan_dict)
+        return jsonify({
+            "building_id": str(building_id),
+            "floor_id": str(floor_id),
+            "label": label,
+            "confidence": float(conf)   # keep it; you can ignore client-side if you want
+        }), 200
+
+    except ValueError as e:
+        logger.warning(f"[predictTop1] bad request: {e}")
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"[predictTop1] internal error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "internal error"}), 500
 
 @bp.route(constants.CONCAT_SCAN, methods=['POST'], endpoint='insertScan')
 def concatenate_scan_tables():
