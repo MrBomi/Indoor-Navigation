@@ -316,11 +316,13 @@ def predict_top1_endpoint():
             return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
 
         label, conf = wknn_predict_top1(int(building_id), int(floor_id), scan_dict)
+        coord = graph_db_manger.get_coord_from_cell(building_id, floor_id, label)
+        svg_coord = floor_db_manger.raw_to_svg(coord, building_id, floor_id)
         return jsonify({
-            "building_id": str(building_id),
-            "floor_id": str(floor_id),
+            "svgX": svg_coord[0],
+            "svgY": svg_coord[1],
             "label": label,
-            "confidence": float(conf)   # keep it; you can ignore client-side if you want
+            "confidence": conf
         }), 200
 
     except ValueError as e:
