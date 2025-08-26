@@ -326,9 +326,11 @@ def predict_top1_endpoint():
         }), 200
 
     except ValueError as e:
+        print(traceback.format_exc())
         logger.warning(f"[predictTop1] bad request: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        print(traceback.format_exc())
         logger.error(f"[predictTop1] internal error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "internal error"}), 500
 
