@@ -123,3 +123,25 @@ def get_json_cell_to_coords(building_id: int, floor_id: int) -> str:
         raise ValueError(f"No cell to coords mapping found for building ID {building_id} and floor ID {floor_id}")
 
     return json_to_cell_to_coords(graph_record.json_cell_to_coords)
+
+
+def get_coord_from_cell(building_id: int, floor_id: int, cell_id: int) -> Set[Coord]:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No cell to coords mapping found for building ID {building_id} and floor ID {floor_id}")
+
+    cell_to_coords = json_to_cell_to_coords(graph_record.json_cell_to_coords)
+    if cell_id not in cell_to_coords:
+        raise ValueError(f"Cell ID {cell_id} not found in building ID {building_id} and floor ID {floor_id}")
+
+    points = cell_to_coords[cell_id]
+    if not points:
+        return None
+    
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    
+    center_x = sum(xs) / len(xs)
+    center_y = sum(ys) / len(ys)
+    
+    return (center_x, center_y)

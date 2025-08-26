@@ -265,8 +265,10 @@ def start_predict():
 @bp.route(constants.UPLOAD_SCAN, methods=['POST'], endpoint='uploadScanTable')
 def upload_scan_table():
     try:
-        building_id = request.args.get(constants.BUILDING_ID)
-        floor_id = request.args.get(constants.FLOOR_ID)
+        building_id = request.form.get(constants.BUILDING_ID)
+        floor_id = request.form.get(constants.FLOOR_ID)
+        #building_id = request.args.get(constants.BUILDING_ID)
+        #floor_id = request.args.get(constants.FLOOR_ID)
         if 'scan' not in request.files:
             return jsonify({"error": "No scan part in the request"}), 400
         file = request.files['scan']
@@ -331,8 +333,10 @@ def predict_top1_endpoint():
 @bp.route(constants.CONCAT_SCAN, methods=['POST'], endpoint='insertScan')
 def concatenate_scan_tables():
     try:
-        building_id = request.args.get(constants.BUILDING_ID)
-        floor_id = request.args.get(constants.FLOOR_ID)
+        #building_id = request.args.get(constants.BUILDING_ID)
+        #floor_id = request.args.get(constants.FLOOR_ID)
+        building_id = request.form.get(constants.BUILDING_ID)
+        floor_id = request.form.get(constants.FLOOR_ID)
         if 'scan' not in request.files:
             return jsonify({"error": "No scan part in the request"}), 400
         file = request.files['scan']
@@ -348,3 +352,8 @@ def concatenate_scan_tables():
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+    
+@bp.route('/test', methods=['GET'])
+def test_endpoint():
+    coord = graph_db_manger.get_coord_from_cell(1, 7, 1226)
+    return jsonify({"coord": coord}), 200
