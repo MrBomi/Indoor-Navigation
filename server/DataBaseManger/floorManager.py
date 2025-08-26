@@ -183,6 +183,14 @@ def svg_to_raw(building_id: int, floor_id: int, x_svg: float, y_svg: float) -> t
     y_raw = y_max_raw - (y_svg / scale)
     return (x_raw, y_raw)
 
+def raw_to_svg(coord: tuple[float, float], building_id: int, floor_id: int) -> tuple[float, float]:
+    x_raw, y_raw = coord
+    x_min_raw, x_max_raw, y_min_raw, y_max_raw = get_floor_by_id(building_id, floor_id)
+    scale = 800 / max(x_max_raw - x_min_raw, y_max_raw - y_min_raw)
+    x_svg = (x_raw - x_min_raw) * scale
+    y_svg = (y_max_raw - y_raw) * scale
+    return (x_svg, y_svg)
+
 def convert_string_to_float_coordinates(coord_str: str) -> tuple[float, float]:
     try:
         x_str, y_str = coord_str.split(',')

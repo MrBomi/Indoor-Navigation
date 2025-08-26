@@ -356,4 +356,5 @@ def concatenate_scan_tables():
 @bp.route('/test', methods=['GET'])
 def test_endpoint():
     coord = graph_db_manger.get_coord_from_cell(1, 7, 1226)
+    svg_coord = floor_db_manger.raw_to_svg(coord, 1, 7)
     return jsonify({"coord": coord}), 200
