@@ -27,6 +27,8 @@ GET_ONE_CM_SVG = f'{FLOOR}/getOneCmSvg'
 
 START_PREDICT = f'{PREDICT}/start'
 GET_PREDICT = f'{PREDICT}/get'
+PREDICT_TOP1 = f'{PREDICT}/top1'
+
 
 
 #parameters
