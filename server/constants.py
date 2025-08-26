@@ -23,6 +23,7 @@ ADD_BUILDING = f'{BUILDING}/add'
 GET_FLOORS = f'{BUILDING}/getFloors'
 ADD_SCAN = f'{FLOOR}/{SCAN}'
 UPLOAD_SCAN = f'{FLOOR}/{SCAN}/upload'
+CONCAT_SCAN = f'{FLOOR}/{SCAN}/concat'
 GET_ONE_CM_SVG = f'{FLOOR}/getOneCmSvg'
 
 START_PREDICT = f'{PREDICT}/start'

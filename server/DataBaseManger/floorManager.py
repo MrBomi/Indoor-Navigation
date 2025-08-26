@@ -1,5 +1,6 @@
 from flask import json
 from typing import BinaryIO
+import io
 from server.models import Floor, Building
 from server.extensions import db
 from server.DataBaseManger.graphManger import save_graph_to_db
@@ -189,7 +190,42 @@ def convert_string_to_float_coordinates(coord_str: str) -> tuple[float, float]:
     except ValueError as e:
         print(f"[ERROR] Failed to convert string to float coordinates: {e}")
         raise ValueError(f"Invalid coordinate string: {coord_str}") from e
-    
+
+
+def _read_new_csv(new_scan_table: BinaryIO) -> pd.DataFrame:
+    """
+    Read an incoming CSV into a pandas DataFrame.
+    Supports:
+      - File path as str (even though the type hint is BinaryIO, Python won't enforce it at runtime)
+      - file-like object with .read() / .stream
+      - raw bytes/bytearray
+    Raises:
+      - ValueError if the input is unsupported or cannot be parsed.
+    """
+    # Flask FileStorage-style (has .stream)
+    if hasattr(new_scan_table, "stream"):
+        new_scan_table.stream.seek(0)
+        return pd.read_csv(new_scan_table.stream)
+
+    # Generic file-like (has .read())
+    if hasattr(new_scan_table, "read"):
+        try:
+            new_scan_table.seek(0)
+        except Exception:
+            pass
+        return pd.read_csv(new_scan_table)
+
+    # Raw bytes
+    if isinstance(new_scan_table, (bytes, bytearray)):
+        return pd.read_csv(io.BytesIO(new_scan_table))
+
+    # File path as string
+    if isinstance(new_scan_table, str):
+        return pd.read_csv(new_scan_table)
+
+    raise ValueError("Unsupported input for new_scan_table")
+
+
 def upload_floor_scan_table(building_id: int, floor_id: int, scan_table: BinaryIO) -> bool:
     try:
         if not is_floor_exists(building_id, floor_id):
@@ -220,6 +256,52 @@ def download_floor_scan_table(building_id: int, floor_id: int) -> pd.DataFrame:
     except Exception as e:
         print(f"[ERROR] Failed to download scan table for floor {floor_id} in building {building_id}: {e}", flush=True)
         return pd.DataFrame()
+
+def concatenate_scan_tables(building_id: int, floor_id: int, new_scan_table: BinaryIO) -> bool:
+    """
+    Merge the existing floor scan table with a new CSV and upload back to R2 as text/csv.
+
+    Behavior:
+      1) Load the existing table via download_floor_scan_table (returns empty DF if not found).
+      2) Read the incoming CSV (file path, file-like stream, or bytes) into a DataFrame.
+      3) Concatenate, drop duplicates, reset index.
+      4) Upload the merged CSV to R2 under the stable key:
+           building_{building_id}/floor_{floor_id}/scan_table.csv
+      5) Return True on successful upload, False otherwise.
+
+    Notes:
+      - Adjust drop_duplicates(subset=[...]) if you have a logical unique key.
+      - upload_to_r2 returns the key (string). Any exception will be raised and caught here.
+    """
+    try:
+        # 1) Existing DataFrame (empty DF if not found is already handled inside your function)
+        existing_df = download_floor_scan_table(building_id, floor_id)
+        if existing_df is None:
+            existing_df = pd.DataFrame()
+
+        # 2) New DataFrame from provided source
+        new_df = _read_new_csv(new_scan_table)
+
+        # 3) Merge & dedupe (change subset to your unique columns if needed)
+        if existing_df.empty:
+            combined_df = new_df.reset_index(drop=True)
+        else:
+            combined_df = (
+                pd.concat([existing_df, new_df], ignore_index=True)
+                  .drop_duplicates()  # e.g. .drop_duplicates(subset=["x","y","ssid"])
+                  .reset_index(drop=True)
+            )
+
+        # 4) Upload CSV bytes back to R2 (overwrite same key)
+        key = f"building_{building_id}/floor_{floor_id}/scan_table.csv"
+        csv_bytes = combined_df.to_csv(index=False).encode("utf-8")
+        uploaded_key = fm.upload_to_r2(csv_bytes, key, content_type="text/csv")
+
+        print(f"✅ Concatenated & uploaded scan table to '{uploaded_key}'", flush=True)
+        return True
+    except Exception as e:
+        print(f"[ERROR] Failed to concatenate/upload scan table for floor {floor_id} in building {building_id}: {e}", flush=True)
+        return False
 
 def get_one_cm_svg(building_id: int, floor_id: int) -> float:
     try:

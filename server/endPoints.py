@@ -4,7 +4,6 @@ import os
 from flask import Flask, Response, request, jsonify, send_file, Blueprint, current_app
 #import server.dataBaseManger as dbm
 from server.mangerBuldings import mangerBuldings
-bp = Blueprint('building', __name__)
 import server.DataBaseManger.buildingManger as building_db_manger
 import server.DataBaseManger.floorManager as floor_db_manger
 import server.DataBaseManger.graphManger as graph_db_manger
@@ -16,6 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import core.ManagerFloor as logicMangerFloor
 from core.predict.predict import Predict
 from server.discord_logs import get_logger
+bp = Blueprint('building', __name__)
 
 logger = get_logger(__name__)
 
@@ -288,6 +288,27 @@ def get_one_cm_svg():
             return jsonify({"error": "Building ID and Floor ID are required"}), 400
         one_cm_svg = floor_db_manger.get_one_cm_svg(int(building_id), int(floor_id))
         return jsonify({"one_cm_svg": one_cm_svg}), 200
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+@bp.route(constants.CONCAT_SCAN, methods=['POST'], endpoint='insertScan')
+def concatenate_scan_tables():
+    try:
+        building_id = request.args.get(constants.BUILDING_ID)
+        floor_id = request.args.get(constants.FLOOR_ID)
+        if 'scan' not in request.files:
+            return jsonify({"error": "No scan part in the request"}), 400
+        file = request.files['scan']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        if not building_id or not floor_id:
+            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        success = floor_db_manger.concatenate_scan_tables(int(building_id), int(floor_id), file.stream)
+        if success:
+            return jsonify({"message": "Scan tables concatenated successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to concatenate scan tables"}), 500
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
