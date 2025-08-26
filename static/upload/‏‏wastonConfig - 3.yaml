@@ -1,0 +1,33 @@
+app:
+  name: Graph Maker
+  version: 1.0
+
+file:
+  input_name: waston3.dxf
+  output_name: static/output/waston_graph.graphml
+  svg_output_name: static/output/waston_output.svg
+  json_output_name: static/output/waston_points.json
+  precision:
+
+graph:
+  node_size: 30.0
+  scale: 1 #  1 by default save the precision of the dxf file
+  offset_cm: 200 #cm
+
+layers:
+  wall_layer:
+    name: A_WALL_PRTN, A_SEEN_LT, A_WALL_GLASS ,A_SEEN_MD
+    color: "#000000"
+    opacity: 0.5
+
+  door_layer:
+    name: A_DOORS
+    color: "#FF0000"
+    opacity: 0.5
+
+  roof_layer:
+    name: A_ROOF
+    color: "#00FF00"
+    opacity: 0.5
+
+

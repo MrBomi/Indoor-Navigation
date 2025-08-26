@@ -1,0 +1,75 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from collections import defaultdict
+import threading
+
+#import configLoader as cl
+from core.app import App
+from core.ManagerFloor import ManagerFloor
+import core.configLoader as cl
+import server.DataBaseManger.floorManager as floor_db_manger
+import server.DataBaseManger.buildingManger as building_db_manger
+from server.discord_logs import get_logger
+
+logger = get_logger(__name__)
+
+class mangerBuldings:
+    def __init__(self):
+        self.buildings = defaultdict()
+        self.buildingsNumber = floor_db_manger.getNewBuildingId()
+        self.lock = threading.Lock()
+
+    def addBuilding(self, yaml_file, dwg_file, buildingID, floorId):
+        if not building_db_manger.is_building_exists(int(buildingID)):
+            raise ValueError(f"Building with ID {buildingID} does not exist.")
+        if floor_db_manger.is_floor_exists(int(buildingID), int(floorId)):
+            raise ValueError(f"Floor with ID {floorId} already exists in building {buildingID}.")
+        config = cl.Config(yaml_file)
+        key = (int(buildingID), int(floorId))
+        if key in self.buildings:
+            logger.info(f"Building {buildingID}, Floor {floorId} already exists, reusing existing instance.")
+            return self.buildings[key].startProccesCreateNewBuilding()
+        self.buildings[key] = App(config, dwg_file)
+        return self.buildings[key].startProccesCreateNewBuilding()
+        # svg = self.buildings[buildingID].getSvgStrring()
+        # graph = self.buildings[buildingID].getGraph()
+        # doors = self.buildings[buildingID].getDoorsData()
+        # x_min = self.buildings[buildingID].getXMinRaw()
+        # x_max = self.buildings[buildingID].getXMaxRaw()
+        # y_min = self.buildings[buildingID].getYMinRaw()
+        # y_max = self.buildings[buildingID].getYMaxRaw()
+        # b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
+
+    def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm):
+        logger.info(f"Continuing building {buildingID}, Floor {floorId} with points {point1}, {point2} and distance {real_distance_cm}")
+        building = self.buildings[(buildingID, floorId)].continueAddBuilding(point1, point2, real_distance_cm)
+        del self.buildings[(buildingID, floorId)]
+        logger.info(f"Building {buildingID}, Floor {floorId} completed, before saving to database.")
+        svg = building.getSvgString()
+        grid_svg = building.getGridSvgString()
+        graph = building.getGraph()
+        doors = building.getDoorsData()
+        x_min = building.getXMinRaw()
+        x_max = building.getXMaxRaw()
+        y_min = building.getYMinRaw()
+        y_max = building.getYMaxRaw()
+        grid_map = building.getCellIdToCoords()
+        cell_to_coords = building.getCellToCoords()
+        coords_to_cell = building.getCoordsToCell()
+        grid_graph = building.getGridGraph()
+        one_cm_svg = building.getOneCmSvg()
+        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map, coords_to_cell, cell_to_coords, grid_graph, one_cm_svg)
+        return building.create_door_json()
+
+    def getBuildings(self):
+        return self.buildings
+
+    def getBuilding(self, buildingID):
+        if buildingID in self.buildings:
+            return self.buildings[buildingID]
+        else:
+            return None
+    
+
+

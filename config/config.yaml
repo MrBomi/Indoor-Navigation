@@ -1,0 +1,31 @@
+app:
+  name: Graph Maker
+  version: 1.0
+
+file:
+  input_name: res/building001-0_floor2.dxf
+  output_name: static/output/test_graph.graphml
+  svg_output_name: static/output/output.svg
+  json_output_name: static/output/points.json
+  precision:
+
+graph:
+  node_size: 30.0
+  scale: 1 #  1 by default save the precision of the dxf file
+  offset_cm: 200 #cm
+
+layers:
+  wall_layer:
+    name: A-WALL
+    color: "#000000"
+    opacity: 0.5
+
+  door_layer:
+    name: A-DOOR
+    color: "#FF0000"
+    opacity: 0.5
+
+  roof_layer:
+    name: A-ROOF
+    color: "#00FF00"
+    opacity: 0.5
