@@ -16,7 +16,7 @@ import core.ManagerFloor as logicMangerFloor
 from core.predict.predict import Predict
 from server.discord_logs import get_logger
 bp = Blueprint('building', __name__)
-from core.predict.wknn_service import predict_top1 as wknn_predict_top1
+from core.predict.wknn_service import predict_top1 as wknn_predict_top1, predict_topk as wknn_predict_topk
 
 logger = get_logger(__name__)
 
@@ -315,7 +315,7 @@ def predict_top1_endpoint():
         if building_id is None or floor_id is None or not isinstance(scan_dict, dict):
             return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
 
-        label, conf = wknn_predict_top1(int(building_id), int(floor_id), scan_dict)
+        label, conf = wknn_predict_top1(int(building_id), int(floor_id), scan_dict) # TODO: need to use wknn_predict_topk instead
         coord = graph_db_manger.get_coord_from_cell(building_id, floor_id, int(label))
         svg_coord = floor_db_manger.raw_to_svg(coord, building_id, floor_id)
         return jsonify({
@@ -362,3 +362,49 @@ def test_endpoint():
     coord = graph_db_manger.get_coord_from_cell(1, 7, 1226)
     svg_coord = floor_db_manger.raw_to_svg(coord, 1, 7)
     return jsonify({"coord": coord}), 200
+    
+
+
+@bp.route(constants.PREDICT_TOP5, methods=['POST'], endpoint='predictTop5')
+def predict_top5_endpoint():
+    """
+    Body:
+    {
+      "building_id": 1,
+      "floor_id": 3,
+      "featureVector": { "<bssid>": -67, ... }
+    }
+
+    Response:
+    {
+      "building_id": "1",
+      "floor_id": "3",
+      "predictions": [
+         {"label": "A12", "confidence": 12.34, "confidence_norm": 0.41},
+         ...
+      ]
+    }
+    """
+    try:
+        data = request.get_json(force=True)
+        building_id = data.get('building_id')
+        floor_id    = data.get('floor_id')
+        scan_dict   = data.get('featureVector')
+
+        if building_id is None or floor_id is None or not isinstance(scan_dict, dict):
+            return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
+
+        results = wknn_predict_topk(int(building_id), int(floor_id), scan_dict, top_k=1)
+
+        return jsonify({
+            "building_id": str(building_id),
+            "floor_id": str(floor_id),
+            "predictions": results
+        }), 200
+
+    except ValueError as e:
+        logger.warning(f"[predictTop5] bad request: {e}")
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"[predictTop5] internal error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "internal error"}), 500
