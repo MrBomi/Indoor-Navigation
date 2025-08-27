@@ -39,7 +39,7 @@ def update_doors_names(doors_dict: dict, building_id: int, floor_id: int) -> boo
     db.session.commit()
     return True
 
-def get_coordinate_by_name(name: str, building_id: str, floor_id: str) -> tuple:
+def get_coordinate_by_name(name: str, building_id: int, floor_id: int) -> tuple:
     door = Door.query.filter_by(name=name, building_id=building_id, floor_id=floor_id).first()
     if door:
         return (door.x, door.y)

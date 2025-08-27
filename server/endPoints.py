@@ -17,6 +17,7 @@ from core.predict.predict import Predict
 from server.discord_logs import get_logger
 bp = Blueprint('building', __name__)
 from core.predict.wknn_service import predict_top1 as wknn_predict_top1
+from core.predict.hmm_model import HMMModel
 
 logger = get_logger(__name__)
 
@@ -355,6 +356,9 @@ def concatenate_scan_tables():
     
 @bp.route('/test', methods=['GET'])
 def test_endpoint():
-    coord = graph_db_manger.get_coord_from_cell(1, 7, 1226)
-    svg_coord = floor_db_manger.raw_to_svg(coord, 1, 7)
-    return jsonify({"coord": coord}), 200
+    graph = graph_db_manger.get_graph_from_db(2, 2)
+    grid = graph_db_manger.get_grid_from_db(2, 2)
+    coord_to_cell = graph_db_manger.get_json_coord_to_cell(2, 2)
+    start_p = doors_db_manger.get_coordinate_by_name("67", 2, 2)
+    goal_p = doors_db_manger.get_coordinate_by_name("66", 2, 2)
+    HMMModel(graph, grid, coord_to_cell, start_p, goal_p)

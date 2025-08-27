@@ -145,3 +145,21 @@ def get_coord_from_cell(building_id: int, floor_id: int, cell_id: int) -> Set[Co
     center_y = sum(ys) / len(ys)
     
     return (center_x, center_y)
+
+def get_grid_graph_from_db(building_id: int, floor_id: int) -> dict:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No grid graph found for building ID {building_id} and floor ID {floor_id}")
+
+    raw_grid_graph = json.loads(graph_record.json_grid_graph)
+    grid_graph = {int(cid): set(map(int, neighbors)) for cid, neighbors in raw_grid_graph.items()}
+    return grid_graph
+
+def get_grid_from_db(building_id: int, floor_id: int) -> dict:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No grid graph found for building ID {building_id} and floor ID {floor_id}")
+
+    raw_grid_graph = json.loads(graph_record.json_grid_graph)
+    grid_graph = {int(cid): set(map(int, neighbors)) for cid, neighbors in raw_grid_graph.items()}
+    return grid_graph
