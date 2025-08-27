@@ -359,14 +359,26 @@ def concatenate_scan_tables():
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
     
-@bp.route('/test', methods=['GET'])
+@bp.route('/test', methods=['POST'])
 def test_endpoint():
+    data = request.get_json(force=True)
     graph = graph_db_manger.get_graph_from_db(2, 2)
     grid = graph_db_manger.get_grid_from_db(2, 2)
     coord_to_cell = graph_db_manger.get_json_coord_to_cell(2, 2)
-    start_p = doors_db_manger.get_coordinate_by_name("67", 2, 2)
-    goal_p = doors_db_manger.get_coordinate_by_name("66", 2, 2)
-    HMMModel(graph, grid, coord_to_cell, start_p, goal_p)
+    start_p = doors_db_manger.get_coordinate_by_name("2", 2, 2)
+    goal_p = doors_db_manger.get_coordinate_by_name("59", 2, 2)
+    predict = HMMModel(graph, grid, coord_to_cell, start_p, goal_p)
+    
+    predict.set_dynamic_cells_prob(682)
+    scan_dict   = data.get('featureVector')
+    results = wknn_predict_topk(2, 2, scan_dict, top_k=8)
+    observations = {int(res['label']): res['confidence_norm'] for res in results}
+    cell, conf = predict.viterbi(observations)
+    return jsonify({
+        "cell": cell,
+        "confidence": conf
+    }), 200
+
     
     
 
