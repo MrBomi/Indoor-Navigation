@@ -16,6 +16,7 @@ import core.ManagerFloor as logicMangerFloor
 from core.predict.predict import Predict
 from server.discord_logs import get_logger
 bp = Blueprint('building', __name__)
+from core.predict.wknn_service import predict_top1 as wknn_predict_top1, predict_topk as wknn_predict_topk
 from core.predict.wknn_service import predict_top1 as wknn_predict_top1
 from core.predict.hmm_model import HMMModel
 
@@ -316,18 +317,22 @@ def predict_top1_endpoint():
         if building_id is None or floor_id is None or not isinstance(scan_dict, dict):
             return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
 
-        label, conf = wknn_predict_top1(int(building_id), int(floor_id), scan_dict)
+        label, conf = wknn_predict_top1(int(building_id), int(floor_id), scan_dict) # TODO: need to use wknn_predict_topk instead
+        coord = graph_db_manger.get_coord_from_cell(building_id, floor_id, int(label))
+        svg_coord = floor_db_manger.raw_to_svg(coord, building_id, floor_id)
         return jsonify({
-            "building_id": str(building_id),
-            "floor_id": str(floor_id),
+            "svgX": svg_coord[0],
+            "svgY": svg_coord[1],
             "label": label,
-            "confidence": float(conf)   # keep it; you can ignore client-side if you want
+            "confidence": conf
         }), 200
 
     except ValueError as e:
+        print(traceback.format_exc())
         logger.warning(f"[predictTop1] bad request: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        print(traceback.format_exc())
         logger.error(f"[predictTop1] internal error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "internal error"}), 500
 
@@ -362,3 +367,50 @@ def test_endpoint():
     start_p = doors_db_manger.get_coordinate_by_name("67", 2, 2)
     goal_p = doors_db_manger.get_coordinate_by_name("66", 2, 2)
     HMMModel(graph, grid, coord_to_cell, start_p, goal_p)
+    
+    
+
+
+@bp.route(constants.PREDICT_TOP5, methods=['POST'], endpoint='predictTop5')
+def predict_top5_endpoint():
+    """
+    Body:
+    {
+      "building_id": 1,
+      "floor_id": 3,
+      "featureVector": { "<bssid>": -67, ... }
+    }
+
+    Response:
+    {
+      "building_id": "1",
+      "floor_id": "3",
+      "predictions": [
+         {"label": "A12", "confidence": 12.34, "confidence_norm": 0.41},
+         ...
+      ]
+    }
+    """
+    try:
+        data = request.get_json(force=True)
+        building_id = data.get('building_id')
+        floor_id    = data.get('floor_id')
+        scan_dict   = data.get('featureVector')
+
+        if building_id is None or floor_id is None or not isinstance(scan_dict, dict):
+            return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
+
+        results = wknn_predict_topk(int(building_id), int(floor_id), scan_dict, top_k=1)
+
+        return jsonify({
+            "building_id": str(building_id),
+            "floor_id": str(floor_id),
+            "predictions": results
+        }), 200
+
+    except ValueError as e:
+        logger.warning(f"[predictTop5] bad request: {e}")
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"[predictTop5] internal error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "internal error"}), 500
