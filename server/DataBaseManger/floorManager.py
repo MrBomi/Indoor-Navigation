@@ -1,6 +1,8 @@
 from flask import json
 from typing import BinaryIO
 import io
+
+from pyparsing import lru_cache
 from server.models import Floor, Building
 from server.extensions import db
 from server.DataBaseManger.graphManger import save_graph_to_db
@@ -88,6 +90,7 @@ def get_grid_svg(building_id: int, floor_id: int) -> str:
         print(f"[ERROR] Failed to retrieve grid SVG for floor {floor_id} in building {building_id}: {e}")
         return ""
 
+@lru_cache(maxsize=128)
 def get_floor_by_id(building_id: int, floor_id: int):
     floor = Floor.query.get((floor_id, building_id))
     if not floor:
