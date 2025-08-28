@@ -140,6 +140,7 @@ def get_svg_path():
         buffer.seek(0)
         return send_file(buffer, mimetype='image/svg+xml', as_attachment=False, download_name=f"building_{buildingID}_path.svg")
     except ValueError as e:
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 400
 
 @bp.route(constants.GET_SVG_DIRECT, methods=['GET'], endpoint='getSvgDirect')
