@@ -465,9 +465,11 @@ def get_predict():
             
 
     except ValueError as e:
+        print(traceback.format_exc())
         logger.warning(f"[getPredict] bad request: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        print(traceback.format_exc())
         logger.error(f"[getPredict] internal error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "internal error"}), 500
 
