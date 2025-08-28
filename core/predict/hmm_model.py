@@ -85,6 +85,8 @@ class HMMModel:
 
         self.visited_counter[best_cell] = self.visited_counter.get(best_cell, 0) + 1
         self.time_stamp = time.time()
+        if best_cell not in self.dynamic_cells_prob.keys():
+            return max(self.dynamic_cells_prob, key=self.dynamic_cells_prob.get) 
         return best_cell,  math.exp(max_prob)
 
     def step(self, observations: dict[int, float], prev_cell: int):
