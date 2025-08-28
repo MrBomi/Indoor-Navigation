@@ -465,14 +465,51 @@ def get_predict():
         }), 200
             
 
+
     except ValueError as e:
         print(traceback.format_exc())
         logger.warning(f"[getPredict] bad request: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         print(traceback.format_exc())
+        print(traceback.format_exc(), file=sys.stderr)
         logger.error(f"[getPredict] internal error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "internal error"}), 500
+
+@bp.route(constants.GET_ROUTE_LIST, methods=['GET'], endpoint='getRouteList')
+def get_route_list():
+    try:
+        buildingID = request.args.get(constants.BUILDING_ID)
+        floorID = request.args.get(constants.FLOOR_ID)
+        start = request.args.get('start')
+        goal = request.args.get('goal')
+        session_id = request.args.get('sessionId')
+        if not buildingID or not floorID or not session_id:
+            return jsonify({"error": "Building ID, Floor ID, and Session ID are required"}), 400
+        if not start:
+            return jsonify({"error": "Start point is required"}), 400
+        if not goal:
+            return jsonify({"error": "Goal point is required"}), 400
+        if start == constants.CURRENT_LOCATION:
+            start = request.args.get('coordinate')
+            coordStart = floor_db_manger.convert_string_to_float_coordinates(start)
+            start_raw = floor_db_manger.svg_to_raw(buildingID,floorID, coordStart[0], coordStart[1])
+            start_p = graph_db_manger.get_closest_point_in_graph(buildingID, floorID, start_raw)
+        else: 
+            start_p = doors_db_manger.get_coordinate_by_name(start, buildingID, floorID)
+        goal_p = doors_db_manger.get_coordinate_by_name(goal, buildingID, floorID)
+        graph = graph_db_manger.get_graph_from_db(buildingID, floorID)
+        path = logicMangerFloor.find_path(graph, start_p, goal_p)
+        path_svg = [floor_db_manger.raw_to_svg(coord, buildingID, floorID) for coord in path]
+        return jsonify({"path": path_svg}), 200
+
+
+    except ValueError as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
 
 
 # @bp.route(constants.START_PREDICT, methods=['POST'], endpoint='addNewModel')

@@ -30,6 +30,7 @@ GET_PREDICT = f'{PREDICT}/get'
 PREDICT_TOP1 = f'{PREDICT}/top1'
 PREDICT_TOP5 = f'{PREDICT}/top5'
 START_PREDICT1 = f'{PREDICT}/start1'
+GET_ROUTE_LIST = f'{FLOOR}/getRouteList'
 
 
 #parameters
