@@ -5,8 +5,9 @@ import time
 
 
 class HMMModel:
-    def __init__(self, graph: dict[int, list[int]], grid: dict[int, set[int]], coords_to_cells: dict[tuple[float, float], set[int]], startCoord: tuple[float, float], endCoord: tuple[float, float]):
+    def __init__(self, graph: dict[int, list[int]], grid: dict[int, set[int]], coords_to_cells: dict[tuple[float, float], set[int]], startCoord: tuple[float, float], endCoord: tuple[float, float], grid_cell_scan: list[int]):
         self.grid = grid
+        self.grid_cell_scan = grid_cell_scan
         self.find_grid_cells_path(coords_to_cells, graph, startCoord, endCoord)
         self.endCoord = endCoord
         self.startCoord = startCoord
