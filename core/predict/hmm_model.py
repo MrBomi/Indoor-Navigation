@@ -5,7 +5,7 @@ import time
 
 
 class HMMModel:
-    def __init__(self, graph: dict[int, list[int]], grid: dict[int, set[int]], coords_to_cells: dict[tuple[float, float], set[int]], startCoord: tuple[float, float], endCoord: tuple[float, float], grid_cell_scan: list[int]):
+    def __init__(self, graph: dict[int, list[int]], grid: dict[int, set[int]], coords_to_cells: dict[tuple[float, float], set[int]], startCoord: tuple[float, float], endCoord: tuple[float, float], grid_cell_scan: list[int] = None):
         self.grid = grid
         self.grid_cell_scan = grid_cell_scan
         self.find_grid_cells_path(coords_to_cells, graph, startCoord, endCoord)
@@ -29,7 +29,7 @@ class HMMModel:
         self.total_weight_in_dynamic_prob = 0.0
         self.epsilon = 0.01
         weights = {
-            "on_path": 20.0,
+            "on_path": 100.0,
             "neighbor_of_path": 10.0,
             "neighbor": 5.0,
             "neighbor_of_neighbor_path": 2.5,
