@@ -2,6 +2,7 @@ from flask import Flask
 from server.config import Config
 from server.mangerBuldings import mangerBuldings
 from server.extensions import db
+from server.predictManager import PredictManager
 
 
 def create_app():
@@ -19,5 +20,6 @@ def create_app():
 
         manager = mangerBuldings()
         app.config['MANAGER'] = manager
+        app.config['PREDICT_MANAGER'] = PredictManager()
 
     return app

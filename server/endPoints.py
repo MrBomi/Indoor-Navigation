@@ -112,17 +112,28 @@ def get_svg_path():
         floorID = request.args.get(constants.FLOOR_ID)
         start = request.args.get('start')
         goal = request.args.get('goal')
-        if not buildingID or not floorID:
-            return jsonify({"error": "Building ID and Floor ID are required"}), 400
+        session_id = request.args.get('sessionId')
+        if not buildingID or not floorID or not session_id:
+            return jsonify({"error": "Building ID, Floor ID, and Session ID are required"}), 400
         if not start:
             return jsonify({"error": "Start point is required"}), 400
         if not goal:
             return jsonify({"error": "Goal point is required"}), 400
+        if start == constants.CURRENT_LOCATION:
+            start = request.args.get('coordinate')
+            coordStart = floor_db_manger.convert_string_to_float_coordinates(start)
+            start_raw = floor_db_manger.svg_to_raw(buildingID,floorID, coordStart[0], coordStart[1])
+            start_p = graph_db_manger.get_closest_point_in_graph(buildingID, floorID, start_raw)
+        else: 
+            start_p = doors_db_manger.get_coordinate_by_name(start, buildingID, floorID)
         graph = graph_db_manger.get_graph_from_db(buildingID, floorID)
         svg_data = floor_db_manger.get_Svg_data(buildingID, floorID)
         x_min, x_max, y_min, y_max = floor_db_manger.get_floor_by_id(buildingID, floorID)
-        start_p = doors_db_manger.get_coordinate_by_name(start, buildingID, floorID)
         goal_p = doors_db_manger.get_coordinate_by_name(goal, buildingID, floorID)
+        predict_manager = current_app.config['PREDICT_MANAGER']
+        grid = graph_db_manger.get_grid_from_db(buildingID, floorID)
+        coords_to_cells = graph_db_manger.get_json_coord_to_cell(buildingID, floorID)
+        predict_manager.add_new_model(graph, grid, coords_to_cells, start_p, goal_p, session_id)
         svg_with_path = logicMangerFloor.get_svg_with_path(svg_data, graph, start_p, goal_p, x_min, x_max, y_min, y_max)
         svg_bytes = svg_with_path.encode('utf-8')
         buffer = BytesIO(svg_bytes)
@@ -237,13 +248,13 @@ def add_scan():
         return jsonify({"error": str(e)}), 400
 
 # TODO: need to move to new endpoint file
-@bp.route(constants.START_PREDICT, methods=['GET'], endpoint='startPredict')
+@bp.route(constants.START_PREDICT1, methods=['GET'], endpoint='startPredict')
 def start_predict():
     try:
         building_id = request.args.get(constants.BUILDING_ID)
         floor_id = request.args.get(constants.FLOOR_ID)
-        start = request.args.get('start')
         goal = request.args.get('goal')
+        start = request.args.get('start')
         samples = request.get_json(silent=True)
         if not building_id or not floor_id or not start or not goal:
             return jsonify({"error": "Building ID, Floor ID, start, and goal are required"}), 400
@@ -269,8 +280,6 @@ def upload_scan_table():
     try:
         building_id = request.form.get(constants.BUILDING_ID)
         floor_id = request.form.get(constants.FLOOR_ID)
-        #building_id = request.args.get(constants.BUILDING_ID)
-        #floor_id = request.args.get(constants.FLOOR_ID)
         if 'scan' not in request.files:
             return jsonify({"error": "No scan part in the request"}), 400
         file = request.files['scan']
@@ -310,9 +319,9 @@ def predict_top1_endpoint():
     """
     try:
         data = request.get_json(force=True)
-        building_id = data.get('building_id')
-        floor_id    = data.get('floor_id')
-        scan_dict   = data.get('featureVector')
+        building_id = data.get(constants.BUILDING_ID)
+        floor_id    = data.get(constants.FLOOR_ID)
+        scan_dict   = data.get(constants.FEATURE_VECTOR)
 
         if building_id is None or floor_id is None or not isinstance(scan_dict, dict):
             return jsonify({"error": "building_id, floor_id, and featureVector (dict) are required"}), 400
@@ -379,10 +388,6 @@ def test_endpoint():
         "confidence": conf
     }), 200
 
-    
-    
-
-
 @bp.route(constants.PREDICT_TOP5, methods=['POST'], endpoint='predictTop5')
 def predict_top5_endpoint():
     """
@@ -426,3 +431,72 @@ def predict_top5_endpoint():
     except Exception as e:
         logger.error(f"[predictTop5] internal error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "internal error"}), 500
+
+@bp.route(constants.GET_PREDICT, methods=['POST'], endpoint='getPredict')
+def get_predict():
+    try:
+        data = request.get_json(force=True)
+        predict_id = data.get(constants.SESSION_ID)
+        scan_dict = data.get('featureVector')
+        buildingId = data.get(constants.BUILDING_ID)
+        floorId = data.get(constants.FLOOR_ID)
+        prev_coord = data.get('userLocation')
+        if not buildingId or not floorId or not scan_dict:
+            return jsonify({"error": "Building ID, Floor ID, and featureVector (dict) are required"}), 400
+        results = wknn_predict_topk(int(buildingId), int(floorId), scan_dict, top_k=5)
+        prev_coord_raw = floor_db_manger.convert_string_to_float_coordinates(prev_coord)
+        prev_coord_raw = floor_db_manger.svg_to_raw(buildingId, floorId, prev_coord_raw[0], prev_coord_raw[1])
+        prev_cell = graph_db_manger.coord_to_cell2(buildingId, floorId, prev_coord_raw)
+        predict_manager = current_app.config['PREDICT_MANAGER']
+        curr_model = predict_manager.get_model(predict_id)
+        curr_model.set_dynamic_cells_prob(prev_cell)
+        observations = {int(res['label']): res['confidence_norm'] for res in results}
+        cell, conf = curr_model.viterbi(observations)
+        coord = graph_db_manger.get_coord_from_cell(buildingId, floorId, int(cell))
+        svg_coord = floor_db_manger.raw_to_svg(coord, buildingId, floorId)
+        return jsonify({
+            "svgX": svg_coord[0],
+            "svgY": svg_coord[1],
+            "label": cell,
+            "confidence": conf,
+            "predictId": predict_id,
+            "results": results
+        }), 200
+            
+
+    except ValueError as e:
+        logger.warning(f"[getPredict] bad request: {e}")
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"[getPredict] internal error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": "internal error"}), 500
+
+
+# @bp.route(constants.START_PREDICT, methods=['POST'], endpoint='addNewModel')
+# def add_new_model():
+#     try:
+#         data = request.get_json(force=True)
+#         building_id = data.get(constants.BUILDING_ID)
+#         floor_id = data.get(constants.FLOOR_ID)
+#         predictId = data.get("sessionId")
+#         #start_p = data.get('start')
+#         #goal_p = data.get('goal')
+#         scan_dict = data.get('featureVector')
+#         if not building_id or not floor_id or not scan_dict:
+#             return jsonify({"error": "Building ID, Floor ID, and featureVector (dict) are required"}), 400
+#         #graph = graph_db_manger.get_graph_from_db(building_id, floor_id)
+#         #grid = graph_db_manger.get_grid_from_db(building_id, floor_id)
+#        coord_to_cell = graph_db_manger.get_json_coord_to_cell(building_id, floor_id)
+#         #start_p_raw = floor_db_manger.convert_string_to_float_coordinates(start_p)
+#         #start_p_raw = floor_db_manger.svg_to_raw(building_id, floor_id, start_p_raw[0], start_p_raw[1])
+#         #end_p = doors_db_manger.get_coordinate_by_name(goal_p, building_id, floor_id)
+#         #predict_id = current_app.config['PREDICT_MANAGER'].add_new_id()
+#         results = wknn_predict_topk(int(building_id), int(floor_id), scan_dict, top_k=1)
+#         cell = results[0]['label']
+#         coord = graph_db_manger.get_coord_from_cell(building_id, floor_id, int(cell))
+#         svg_coord = floor_db_manger.raw_to_svg(coord, building_id, floor_id)
+#         #predict_id = predict_manager.add_new_model(graph, grid, coord_to_cell, start_p_raw, end_p)
+#         return jsonify({"svgX": svg_coord[0], "svgY": svg_coord[1], "label": cell}), 200
+#     except Exception as e:
+#         print(traceback.format_exc())
+#         return jsonify({"error": str(e)}), 500

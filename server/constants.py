@@ -25,17 +25,20 @@ ADD_SCAN = f'{FLOOR}/{SCAN}'
 UPLOAD_SCAN = f'{FLOOR}/{SCAN}/upload'
 CONCAT_SCAN = f'{FLOOR}/{SCAN}/concat'
 GET_ONE_CM_SVG = f'{FLOOR}/getOneCmSvg'
-
 START_PREDICT = f'{PREDICT}/start'
 GET_PREDICT = f'{PREDICT}/get'
 PREDICT_TOP1 = f'{PREDICT}/top1'
 PREDICT_TOP5 = f'{PREDICT}/top5'
-
+START_PREDICT1 = f'{PREDICT}/start1'
 
 
 #parameters
 BUILDING_ID = 'buildingId'
 DOOR_ID = 'doorId'
 FLOOR_ID = 'floorId'
+PREDICT_ID = 'predictId'
+FEATURE_VECTOR = 'featureVector'
+CURRENT_LOCATION = 'Current Location'
+SESSION_ID = 'sessionId'
 SIZE = 800
 

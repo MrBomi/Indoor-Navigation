@@ -1,7 +1,7 @@
 
 import math
 from core.ManagerFloor import find_path
-
+import time
 
 
 class HMMModel:
@@ -15,6 +15,7 @@ class HMMModel:
         self.weight_emission = 1
         self.visited_counter = {}
         self.history_penalty = 0.5
+        self.time_stamp = None
 
 
     def find_grid_cells_path(self, coords_to_cells, graph ,start, end ):
@@ -83,4 +84,9 @@ class HMMModel:
                 best_cell = cell
 
         self.visited_counter[best_cell] = self.visited_counter.get(best_cell, 0) + 1
+        self.time_stamp = time.time()
         return best_cell,  math.exp(max_prob)
+
+    def step(self, observations: dict[int, float], prev_cell: int):
+        self.set_dynamic_cells_prob(prev_cell)
+        return self.viterbi(observations)

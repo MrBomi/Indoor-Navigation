@@ -1,9 +1,12 @@
+from functools import lru_cache
 from server.models import Graph, db
 import json
 from typing import Dict, Tuple, Set, Iterable
 Coord = Tuple[float, float]
 CellID = int
 Bounds = Tuple[float, float, float, float]
+import math
+from scipy.spatial import KDTree
 
 def save_graph_to_db(building_id: int, floor_id: int, graph_dict: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict) -> bool:
     try:
@@ -163,3 +166,67 @@ def get_grid_from_db(building_id: int, floor_id: int) -> dict:
     raw_grid_graph = json.loads(graph_record.json_grid_graph)
     grid_graph = {int(cid): set(map(int, neighbors)) for cid, neighbors in raw_grid_graph.items()}
     return grid_graph
+
+def coord_to_cell(building_id: int, floor_id: int, coord: Coord) -> CellID:
+    closest_coord = get_closest_point_in_graph(building_id, floor_id, coord)
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No coords to cell mapping found for building ID {building_id} and floor ID {floor_id}")
+
+    coords_to_cell = json_to_coord_to_cells(graph_record.json_coords_to_cell)
+    cells = coords_to_cell.get(closest_coord, set()).pop()
+
+def get_closest_point_in_graph(building_id: int, floor_id: int, coord: Coord) -> Coord:
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No coords to cell mapping found for building ID {building_id} and floor ID {floor_id}")
+    graph = get_graph_from_db(building_id, floor_id)
+    if not graph:
+        raise ValueError(f"No graph data found for building ID {building_id} and floor ID {floor_id}")
+    points = list(graph.keys())
+    if not points:
+        raise ValueError("Graph has no nodes")
+    tree = KDTree(points)
+    dist, idx = tree.query(coord)
+    closest_point = points[idx]
+
+    return closest_point
+
+def coord_to_cell2(building_id: int, floor_id: int, coord: Coord) -> CellID:
+    tree, cell_ids = build_kdtree(building_id, floor_id)
+    dist, idx = tree.query(coord)
+    return cell_ids[idx]
+
+
+@lru_cache(maxsize=10)  
+def build_kdtree(building_id: int, floor_id: int):
+    graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
+    if not graph_record:
+        raise ValueError(f"No coords to cell mapping found for building ID {building_id} and floor ID {floor_id}")
+    
+    cell_to_coord = json_to_cell_to_coords(graph_record.json_cell_to_coords)
+    if not cell_to_coord:
+        raise ValueError(f"No coords to cell mapping found for building ID {building_id} and floor ID {floor_id}")
+    
+    
+    centers = []
+    cell_ids = []
+    for cellId, coords in cell_to_coord.items():
+        points = coords
+        if not points:
+            return None
+
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
+
+        center_x = sum(xs) / len(xs)
+        center_y = sum(ys) / len(ys)
+        center = (center_x, center_y)
+
+        #center = get_coord_from_cell(building_id, floor_id, cellId)
+        centers.append(center)
+        cell_ids.append(cellId)
+
+    tree = KDTree(centers)
+    return tree, cell_ids
+
