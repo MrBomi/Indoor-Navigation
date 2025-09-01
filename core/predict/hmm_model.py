@@ -27,7 +27,7 @@ class HMMModel:
     def set_dynamic_cells_prob(self, prev_cell: int):
         self.dynamic_cells_prob = {}
         self.total_weight_in_dynamic_prob = 0.0
-        self.epsilon = 0.01
+        self.epsilon = 0.0001
         weights = {
             "on_path": 100.0,
             "neighbor_of_path": 10.0,
