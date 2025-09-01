@@ -249,7 +249,7 @@ def upload_floor_scan_table(building_id: int, floor_id: int, scan_table: BinaryI
         print(f"[ERROR] Failed to upload scan table for floor {floor_id} in building {building_id}: {e}", flush=True)
         return False
     
-def download_floor_scan_table(building_id: int, floor_id: int) -> pd.DataFrame:
+def download_floor_scan_table(building_id: int, floor_id: int, as_df: bool = True):
     try:
         if not is_floor_exists(building_id, floor_id):
             raise ValueError(f"Floor {floor_id} in building {building_id} does not exist.")
@@ -257,10 +257,16 @@ def download_floor_scan_table(building_id: int, floor_id: int) -> pd.DataFrame:
         file_bytes = fm.download_from_r2(file_key)
         from io import StringIO
         s = str(file_bytes, 'utf-8')
-        data = StringIO(s) 
+        data = StringIO(s)
         df = pd.read_csv(data)
         print(f"✅ Scan table for floor {floor_id} in building {building_id} downloaded successfully.", flush=True)
-        return df
+
+        if as_df:
+            return df
+        else:
+            if "Vertex" not in df.columns:
+                raise ValueError(f"Column 'Vertex' not found in scan table for floor {floor_id}.")
+            return set(df["Vertex"])
     except FileNotFoundError:
         print(f"[ERROR] Scan table for floor {floor_id} in building {building_id} not found in R2.", flush=True)
         return pd.DataFrame()  # Return empty DataFrame if file not found

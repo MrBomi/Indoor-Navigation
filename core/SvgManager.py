@@ -419,3 +419,23 @@ def draw_grid_flutter(
             nodes_g.add(svg.circle(center=(cx, cy), r=r, fill="#1976d2"))
 
     return svg, cell_id_to_coords
+
+
+def highlight_vertices(svg_str: str, vertices: list[int]) -> str:
+    """
+    Highlight given vertices (rect with id=vertex) in green.
+    """
+    # Parse SVG string
+    root = ET.fromstring(svg_str)
+    
+    # SVG namespace fix
+    ns = {"svg": "http://www.w3.org/2000/svg"}
+    ET.register_namespace("", ns["svg"])
+    
+    for rect in root.findall(".//svg:rect", ns):
+        rect_id = rect.attrib.get("id")
+        if rect_id and rect_id.isdigit() and int(rect_id) in vertices:
+            rect.set("fill", "green")  # override the fill color
+    
+    # Return updated SVG as string
+    return ET.tostring(root, encoding="unicode")

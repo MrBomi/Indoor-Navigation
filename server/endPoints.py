@@ -19,6 +19,8 @@ bp = Blueprint('building', __name__)
 from core.predict.wknn_service import predict_top1 as wknn_predict_top1, predict_topk as wknn_predict_topk
 from core.predict.wknn_service import predict_top1 as wknn_predict_top1
 from core.predict.hmm_model import HMMModel
+from core.SvgManager import highlight_vertices
+
 
 logger = get_logger(__name__)
 
@@ -192,6 +194,8 @@ def get_grid_svg():
         grid_svg = floor_db_manger.get_grid_svg(building_id, floor_id)
         if not grid_svg:
             return jsonify({"error": "Grid SVG not found for the given building ID"}), 404
+        cells_in_grid = floor_db_manger.download_floor_scan_table(building_id, floor_id, as_df=False)
+        grid_svg = highlight_vertices(grid_svg, cells_in_grid)
         svg_bytes = grid_svg.encode('utf-8')
         buffer = BytesIO(svg_bytes)
         buffer.seek(0)
