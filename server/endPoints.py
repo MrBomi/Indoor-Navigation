@@ -444,7 +444,7 @@ def get_predict():
         prev_coord = data.get('userLocation')
         if not buildingId or not floorId or not scan_dict:
             return jsonify({"error": "Building ID, Floor ID, and featureVector (dict) are required"}), 400
-        results = wknn_predict_topk(int(buildingId), int(floorId), scan_dict, top_k=5)
+        results = wknn_predict_topk(int(buildingId), int(floorId), scan_dict, top_k=10)
         prev_coord_raw = floor_db_manger.convert_string_to_float_coordinates(prev_coord)
         prev_coord_raw = floor_db_manger.svg_to_raw(buildingId, floorId, prev_coord_raw[0], prev_coord_raw[1])
         prev_cell = graph_db_manger.coord_to_cell2(buildingId, floorId, prev_coord_raw)
