@@ -20,6 +20,7 @@ class Floor(db.Model):
     grid_map = db.Column(db.Text)
     scan_table = db.Column(db.String)  # Default table name for scans
     one_cm_svg = db.Column(db.Float)  # SVG representation at 1cm scale
+    north_offset = db.Column(db.Float)  # North offset for the floor
     doors = db.relationship('Door', backref='building', cascade='all, delete-orphan')
     graph = db.relationship('Graph', uselist=False, backref='building')
     building_id = db.Column(db.Integer, db.ForeignKey('buildings.id'), nullable=False)

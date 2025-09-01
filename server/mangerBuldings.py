@@ -41,7 +41,7 @@ class mangerBuldings:
         # y_max = self.buildings[buildingID].getYMaxRaw()
         # b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
 
-    def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm):
+    def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm, north_offset):
         logger.info(f"Continuing building {buildingID}, Floor {floorId} with points {point1}, {point2} and distance {real_distance_cm}")
         building = self.buildings[(buildingID, floorId)].continueAddBuilding(point1, point2, real_distance_cm)
         del self.buildings[(buildingID, floorId)]
@@ -59,7 +59,7 @@ class mangerBuldings:
         coords_to_cell = building.getCoordsToCell()
         grid_graph = building.getGridGraph()
         one_cm_svg = building.getOneCmSvg()
-        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map, coords_to_cell, cell_to_coords, grid_graph, one_cm_svg)
+        floor_db_manger.add_floor(int(buildingID), int(floorId), svg, grid_svg, graph, doors, x_min, x_max, y_min, y_max, grid_map, coords_to_cell, cell_to_coords, grid_graph, one_cm_svg, north_offset)
         return building.create_door_json()
 
     def getBuildings(self):

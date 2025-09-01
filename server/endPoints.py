@@ -56,6 +56,7 @@ def calibrate_floor():
         first_point = calibration.get('first_point', {})
         second_point = calibration.get('second_point', {})
         real_distance_cm = calibration.get('real_distance_cm')
+        north_offset = data.get('north_offset')
         if not building_id or not first_point or not second_point or not real_distance_cm:
             return jsonify({"error": "Missing required calibration data"}), 400
         point1 = (first_point.get('x'), first_point.get('y'))
@@ -63,7 +64,7 @@ def calibrate_floor():
 
         
         manger = current_app.config['MANAGER']
-        door_json = manger.continueAddBuilding(building_id, floor_id, point1, point2, real_distance_cm)
+        door_json = manger.continueAddBuilding(building_id, floor_id, point1, point2, real_distance_cm, north_offset)
         return jsonify({
                 "buildingId": building_id,
                 "doors": door_json}), 200
@@ -306,7 +307,8 @@ def get_one_cm_svg():
         if not building_id or not floor_id:
             return jsonify({"error": "Building ID and Floor ID are required"}), 400
         one_cm_svg = floor_db_manger.get_one_cm_svg(int(building_id), int(floor_id))
-        return jsonify({"one_cm_svg": one_cm_svg}), 200
+        north_offset = floor_db_manger.get_north_offset(int(building_id), int(floor_id))
+        return jsonify({"one_cm_svg": one_cm_svg, "north_offset": north_offset}), 200
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500

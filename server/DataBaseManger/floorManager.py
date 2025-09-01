@@ -15,7 +15,7 @@ import csv
 logger = get_logger(__name__)
 
 
-def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict, one_cm_svg: float) -> bool:
+def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, graph_dict: dict, doors_dict: dict, x_min: float, x_max: float, y_min: float, y_max: float, grid_map: dict, coords_to_cell: dict, cell_to_coords: dict, grid_graph: dict, one_cm_svg: float, north_offset: float) -> bool:
     try:
         existing = Floor.query.get((floor_id, building_id))
         if existing:
@@ -33,7 +33,8 @@ def add_floor(building_id: int, floor_id: int, svg_data: str, grid_svg: str, gra
             y_min=y_min, y_max=y_max,
             building_id=building_id,
             grid_map=floor_grid_map,
-            one_cm_svg=one_cm_svg
+            one_cm_svg=one_cm_svg,
+            north_offset=north_offset
         )
         db.session.add(floor)
         db.session.commit()
@@ -330,3 +331,14 @@ def get_one_cm_svg(building_id: int, floor_id: int) -> float:
     except Exception as e:
         print(f"[ERROR] Failed to retrieve one_cm_svg for floor {floor_id} in building {building_id}: {e}")
         return -1.0
+    
+def get_north_offset(building_id: int, floor_id: int) -> float:
+    try:
+        floor = Floor.query.get((floor_id, building_id))
+        if floor:
+            return floor.north_offset
+        else:
+            raise ValueError(f"Floor with ID {floor_id} in building {building_id} not found.")
+    except Exception as e:
+        print(f"[ERROR] Failed to retrieve north_offset for floor {floor_id} in building {building_id}: {e}")
+        return 0.0
