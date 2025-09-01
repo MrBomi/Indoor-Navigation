@@ -27,13 +27,13 @@ class HMMModel:
     def set_dynamic_cells_prob(self, prev_cell: int):
         self.dynamic_cells_prob = {}
         self.total_weight_in_dynamic_prob = 0.0
-        self.epsilon = 0.0001
+        self.epsilon = 0.00001
         weights = {
-            "on_path": 100.0,
-            "neighbor_of_path": 10.0,
-            "neighbor": 5.0,
-            "neighbor_of_neighbor_path": 2.5,
-            "neighbor_of_neighbor": 1.0
+            "on_path": 1500.0,
+            "neighbor_of_path": 300.0,
+            "neighbor": 0.001,
+            "neighbor_of_neighbor_path": 0.0005,
+            "neighbor_of_neighbor": 0.0001
         }
         cell_neighbors = self.grid.get(prev_cell, [])
         cell_neighbors = self.grid.get(prev_cell, [])
