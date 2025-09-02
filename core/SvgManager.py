@@ -91,7 +91,7 @@ def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
 
     return grid_svg, cell_id_to_coords
 
-def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
+def create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
     SVG_NS = "http://www.w3.org/2000/svg"
     ET.register_namespace("", SVG_NS)
 
@@ -421,6 +421,41 @@ def draw_grid_flutter(
     return svg, cell_id_to_coords
 
 
+import xml.etree.ElementTree as ET
+
+def rename_doors_in_svg(svg, doors_data):
+    SVG_NS = "http://www.w3.org/2000/svg"
+    ET.register_namespace("", SVG_NS)
+
+    svg_root = ET.fromstring(svg)
+
+    for door in doors_data:
+        door_id = f'door-{door["id"]}'
+        new_name = door.get("name", f"Door {door['id']}")
+
+        circle = svg_root.find(f".//{{{SVG_NS}}}circle[@id='{door_id}']")
+        if circle is not None:
+            cx = float(circle.get("cx"))
+            cy = float(circle.get("cy"))
+            r = float(circle.get("r", 2))
+
+    
+            text = svg_root.find(f".//{{{SVG_NS}}}text[@x='{circle.get('cx')}'][@y='{str(cy - r - 2)}']")
+            if text is not None:
+                text.text = new_name
+            else:
+                text = ET.SubElement(svg_root, f"{{{SVG_NS}}}text", {
+                    'x': circle.get("cx"),
+                    'y': str(cy - r - 2),
+                    'font-size': "6",
+                    'fill': "black",
+                    'text-anchor': "middle"
+                })
+                text.text = new_name
+
+    return ET.tostring(svg_root, encoding="utf-8", xml_declaration=True).decode("utf-8")
+
+
 def highlight_vertices(svg_str: str, vertices: list[int]) -> str:
     """
     Highlight given vertices (rect with id=vertex) in green.
@@ -439,3 +474,17 @@ def highlight_vertices(svg_str: str, vertices: list[int]) -> str:
     
     # Return updated SVG as string
     return ET.tostring(root, encoding="unicode")
+
+
+def create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
+    SVG_NS = "http://www.w3.org/2000/svg"
+    ET.register_namespace("", SVG_NS)
+
+    svg_root = ET.fromstring(svg)
+
+    has_doors = svg_root.find(f".//{{{SVG_NS}}}circle[@id]") is not None
+
+    if has_doors:
+        return rename_doors_in_svg(svg, doors_data)
+    else:
+        return create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius, color)
