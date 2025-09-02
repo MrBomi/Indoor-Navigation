@@ -229,7 +229,7 @@ def get_floors_for_building():
             return jsonify({"error": "Building ID is required"}), 400
         
         floor_ids = floor_db_manger.get_all_floor_ids(building_id)
-        return jsonify(floor_ids), 200
+        return jsonify(sorted(floor_ids)), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -203,7 +203,6 @@ def convert_string_to_float_coordinates(coord_str: str) -> tuple[float, float]:
         print(f"[ERROR] Failed to convert string to float coordinates: {e}")
         raise ValueError(f"Invalid coordinate string: {coord_str}") from e
 
-
 def _read_new_csv(new_scan_table: BinaryIO) -> pd.DataFrame:
     """
     Read an incoming CSV into a pandas DataFrame.
@@ -236,7 +235,6 @@ def _read_new_csv(new_scan_table: BinaryIO) -> pd.DataFrame:
         return pd.read_csv(new_scan_table)
 
     raise ValueError("Unsupported input for new_scan_table")
-
 
 def upload_floor_scan_table(building_id: int, floor_id: int, scan_table: BinaryIO) -> bool:
     try:
