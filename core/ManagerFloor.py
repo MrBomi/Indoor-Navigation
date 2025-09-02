@@ -339,4 +339,4 @@ def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_ma
     #     text.text = name
 
     # return ET.tostring(svg_root, encoding='utf-8', xml_declaration=True).decode('utf-8')
-    return SvgManager.create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius, color)
+    return SvgManager.update_doors_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius, color)

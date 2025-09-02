@@ -91,7 +91,7 @@ def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
 
     return grid_svg, cell_id_to_coords
 
-def create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
+def create_doors_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
     SVG_NS = "http://www.w3.org/2000/svg"
     ET.register_namespace("", SVG_NS)
 
@@ -476,7 +476,7 @@ def highlight_vertices(svg_str: str, vertices: list[int]) -> str:
     return ET.tostring(root, encoding="unicode")
 
 
-def create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
+def update_doors_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
     SVG_NS = "http://www.w3.org/2000/svg"
     ET.register_namespace("", SVG_NS)
 
@@ -487,4 +487,4 @@ def create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw
     if has_doors:
         return rename_doors_in_svg(svg, doors_data)
     else:
-        return create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius, color)
+        return create_doors_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius, color)

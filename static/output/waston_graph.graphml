@@ -533,7 +533,7 @@
     <node id="n47">
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry x="582.4631986474236" y="386.89824634661255" width="30.0" height="30.0"/>
+          <y:Geometry x="581.9141898248178" y="386.6709295323894" width="30.0" height="30.0"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel fontFamily="Dialog" fontSize="12" textColor="#000000">47</y:NodeLabel>
@@ -610,7 +610,7 @@
     <node id="n54">
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry x="450.00682340057244" y="386.898250878307" width="30.0" height="30.0"/>
+          <y:Geometry x="449.712007309977" y="386.67092952314715" width="30.0" height="30.0"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel fontFamily="Dialog" fontSize="12" textColor="#000000">54</y:NodeLabel>
@@ -665,7 +665,7 @@
     <node id="n59">
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry x="317.9120235118365" y="386.89825163436336" width="30.0" height="30.0"/>
+          <y:Geometry x="317.5094054936495" y="386.6921621940313" width="30.0" height="30.0"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel fontFamily="Dialog" fontSize="12" textColor="#000000">59</y:NodeLabel>
@@ -856,6 +856,17 @@
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel fontFamily="Dialog" fontSize="12" textColor="#000000">76</y:NodeLabel>
+          <y:Shape type="ellipse"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n77">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry x="147.6149966929026" y="344.3263554572881" width="30.0" height="30.0"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel fontFamily="Dialog" fontSize="12" textColor="#000000">77</y:NodeLabel>
           <y:Shape type="ellipse"/>
         </y:ShapeNode>
       </data>
