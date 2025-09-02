@@ -303,11 +303,11 @@ def concatenate_scan_tables(building_id: int, floor_id: int, new_scan_table: Bin
         # 3) Merge & dedupe (change subset to your unique columns if needed)
         if existing_df.empty:
             combined_df = new_df.reset_index(drop=True)
+            combined_df = combined_df.replace("", -100).fillna(-100)
         else:
             combined_df = (
                 pd.concat([existing_df, new_df], ignore_index=True)
-                  .drop_duplicates()  # e.g. .drop_duplicates(subset=["x","y","ssid"])
-                  .reset_index(drop=True)
+                  .reset_index(drop=True).replace("", -100).fillna(-100)
             )
 
         # 4) Upload CSV bytes back to R2 (overwrite same key)

@@ -91,7 +91,7 @@ def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
 
     return grid_svg, cell_id_to_coords
 
-def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=4, color='blue'):
+def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
     SVG_NS = "http://www.w3.org/2000/svg"
     ET.register_namespace("", SVG_NS)
 
@@ -114,7 +114,7 @@ def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_ma
         text = ET.SubElement(svg_root, f"{{{SVG_NS}}}text", {
             'x': str(x),
             'y': str(y - radius - 2),
-            'font-size': "8",
+            'font-size': "6",
             'fill': "black",
             'text-anchor': "middle"
         })

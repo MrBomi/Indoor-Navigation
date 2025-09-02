@@ -281,7 +281,7 @@ def start_predict():
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
-@bp.route(constants.UPLOAD_SCAN, methods=['POST'], endpoint='uploadScanTable')
+@bp.route(constants.ADD_NEW_SCAN, methods=['POST'], endpoint='uploadScanTable')
 def upload_scan_table():
     try:
         building_id = request.form.get(constants.BUILDING_ID)
@@ -313,7 +313,6 @@ def get_one_cm_svg():
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
     
-
 @bp.route(constants.PREDICT_TOP1, methods=['POST'], endpoint='predictTop1')
 def predict_top1_endpoint():
     """
@@ -352,7 +351,7 @@ def predict_top1_endpoint():
         logger.error(f"[predictTop1] internal error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "internal error"}), 500
 
-@bp.route(constants.CONCAT_SCAN, methods=['POST'], endpoint='insertScan')
+@bp.route(constants.UPLOAD_SCAN, methods=['POST'], endpoint='insertScan')
 def concatenate_scan_tables():
     try:
         #building_id = request.args.get(constants.BUILDING_ID)
