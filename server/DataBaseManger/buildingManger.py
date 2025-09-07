@@ -30,6 +30,7 @@ def add_building(building_name: str, building_city: str,building_address: str) -
         building = Building(id=building_id, name=building_name, city=building_city, address=building_address)
         db.session.add(building)
         db.session.commit()
+        invalidate_buildings_cache()
         return True
 
     except Exception as e:
@@ -59,3 +60,19 @@ def is_building_exists(building_id: int) -> bool:
     # Check if a building with the given ID exists in the database
     return Building.query.get(building_id) is not None
 
+
+# cache module
+_buildings_cache = None
+
+def get_all_buildings_cached():
+    global _buildings_cache
+    if _buildings_cache is None:
+        print("[CACHE MISS] Fetching buildings from DB")
+        _buildings_cache = get_all_buldings()  
+    else:
+        print("[CACHE HIT] Returning buildings from cache")
+    return _buildings_cache
+
+def invalidate_buildings_cache():
+    global _buildings_cache
+    _buildings_cache = None

@@ -166,7 +166,8 @@ def send_svg(rel_path = None):
 @bp.route(constants.GET_ALL_BUILDINGS, methods=['GET'], endpoint='getBuildings')
 def get_buildings():
     try:
-        building_list = building_db_manger.get_all_buldings()
+        #building_list = building_db_manger.get_all_buldings()
+        building_list = building_db_manger.get_all_buildings_cached()
         if not building_list:
             return jsonify({"message": "No buildings found"}), 404
         return jsonify(building_list), 200
@@ -229,7 +230,7 @@ def get_floors_for_building():
             return jsonify({"error": "Building ID is required"}), 400
         
         floor_ids = floor_db_manger.get_all_floor_ids(building_id)
-        return jsonify(sorted(floor_ids)), 200
+        return jsonify(floor_ids), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
