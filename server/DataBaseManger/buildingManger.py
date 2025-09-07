@@ -1,3 +1,4 @@
+import time
 from server.models import Building
 from server.extensions import db
 import server.DataBaseManger.floorManager as floor_db_manger
@@ -63,16 +64,19 @@ def is_building_exists(building_id: int) -> bool:
 
 # cache module
 _buildings_cache = None
+_cache_timestamp = 0
+_CACHE_TTL = 300  
 
 def get_all_buildings_cached():
-    global _buildings_cache
-    if _buildings_cache is None:
-        print("[CACHE MISS] Fetching buildings from DB")
-        _buildings_cache = get_all_buldings()  
-    else:
-        print("[CACHE HIT] Returning buildings from cache")
+    global _buildings_cache, _cache_timestamp
+    now = time.time()
+    if _buildings_cache is None or now - _cache_timestamp > _CACHE_TTL:
+        print("[CACHE REFRESH] Loading from DB")
+        _buildings_cache = get_all_buldings()
+        _cache_timestamp = now
     return _buildings_cache
 
 def invalidate_buildings_cache():
-    global _buildings_cache
+    global _buildings_cache, _cache_timestamp
     _buildings_cache = None
+    _cache_timestamp = 0
