@@ -100,7 +100,7 @@ def get_floor_by_id(building_id: int, floor_id: int):
 
 def get_all_floor_ids(building_id: int):
     floors = Floor.query.filter_by(building_id=building_id).all()
-    return [int(floor.id) for floor in floors]
+    return sorted([int(floor.id) for floor in floors])
 
 def update_svg_data(building_id: int, floor_id: int, svg_data: str) -> bool:
     try:
