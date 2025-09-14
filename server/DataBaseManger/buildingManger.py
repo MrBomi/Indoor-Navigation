@@ -3,6 +3,11 @@ from server.models import Building
 from server.extensions import db
 import server.DataBaseManger.floorManager as floor_db_manger
 
+# cache module
+_buildings_cache = None
+_cache_timestamp = 0
+_CACHE_TTL = 300  
+
 
 def get_new_buildingId():
     try:
@@ -39,7 +44,6 @@ def add_building(building_name: str, building_city: str,building_address: str) -
         db.session.rollback()
         return False
     
-
 def get_all_buldings():
     # Retrieve all buildings from the database in list
     buildings = Building.query.all()
@@ -60,12 +64,6 @@ def get_all_buldings():
 def is_building_exists(building_id: int) -> bool:
     # Check if a building with the given ID exists in the database
     return Building.query.get(building_id) is not None
-
-
-# cache module
-_buildings_cache = None
-_cache_timestamp = 0
-_CACHE_TTL = 300  
 
 def get_all_buildings_cached():
     global _buildings_cache, _cache_timestamp

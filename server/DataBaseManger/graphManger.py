@@ -62,7 +62,6 @@ def unstringify_graph_keys(d: dict) -> dict:
         new_dict[key] = neighbors_tuples
     return new_dict
 
-
 def coord_to_cells_to_json(coord_to_cells: Dict[Coord, Set[CellID]]) -> str:
     """
     Convert Dict[(x,y), set(CellID)] into a JSON string:
@@ -126,7 +125,6 @@ def get_json_cell_to_coords(building_id: int, floor_id: int) -> str:
         raise ValueError(f"No cell to coords mapping found for building ID {building_id} and floor ID {floor_id}")
 
     return json_to_cell_to_coords(graph_record.json_cell_to_coords)
-
 
 def get_coord_from_cell(building_id: int, floor_id: int, cell_id: int) -> Set[Coord]:
     graph_record = Graph.query.filter_by(building_id=building_id, floor_id=floor_id).first()
@@ -196,7 +194,6 @@ def coord_to_cell2(building_id: int, floor_id: int, coord: Coord) -> CellID:
     tree, cell_ids = build_kdtree(building_id, floor_id)
     dist, idx = tree.query(coord)
     return cell_ids[idx]
-
 
 @lru_cache(maxsize=10)  
 def build_kdtree(building_id: int, floor_id: int):

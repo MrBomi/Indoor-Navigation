@@ -32,14 +32,6 @@ class mangerBuldings:
             return self.buildings[key].startProccesCreateNewBuilding()
         self.buildings[key] = App(config, dwg_file)
         return self.buildings[key].startProccesCreateNewBuilding()
-        # svg = self.buildings[buildingID].getSvgStrring()
-        # graph = self.buildings[buildingID].getGraph()
-        # doors = self.buildings[buildingID].getDoorsData()
-        # x_min = self.buildings[buildingID].getXMinRaw()
-        # x_max = self.buildings[buildingID].getXMaxRaw()
-        # y_min = self.buildings[buildingID].getYMinRaw()
-        # y_max = self.buildings[buildingID].getYMaxRaw()
-        # b_db_manger.add_building(buildingID, svg, graph, doors, x_min, x_max, y_min, y_max)
 
     def continueAddBuilding(self, buildingID, floorId, point1, point2, real_distance_cm, north_offset):
         logger.info(f"Continuing building {buildingID}, Floor {floorId} with points {point1}, {point2} and distance {real_distance_cm}")

@@ -22,6 +22,15 @@ import core.Bitmap as bm
 from core.ManagerFloor import ManagerFloor
 import core.SvgManager as SvgManager
 from scipy.spatial import KDTree
+import math
+from collections import defaultdict
+from typing import Dict, Tuple, Set, Iterable
+
+
+
+Coord = Tuple[float, float]
+CellID = int
+Bounds = Tuple[float, float, float, float]  # (minx, miny, maxx, maxy)
 
 WIDTH, HEIGHT = 800, 800
 
@@ -39,8 +48,6 @@ class App:
         self.node_size = config.get('graph','node_size')
         self.scale = config.get('graph','scale')
         self.offset_cm = config.get('graph','offset_cm')
-        # if dwg_file is None:
-        #     dwg_path = config.get('file','input_name')
         dwg_file.seek(0)
         raw = dwg_file.read()
         stream = io.BytesIO(raw)
@@ -62,7 +69,6 @@ class App:
         self.wall_lines = None
         self.height = None
         self.width = None
-
 
     
     def startProccesCreateNewBuilding(self):
@@ -108,10 +114,7 @@ class App:
             x, y = self.utils.scale(pt.x, pt.y)
             doors_json.append({"id": i, "x": x, "y": y})
 
-        #coarse_to_fine = self.createGreedToSvg(graph)
         one_m_space = math.floor(100 / self.unit_scale)
-        #grid_svg, cell_id_to_coords = SvgManager.addGridToSvg(self.all_lines, coarse_to_fine, self.utils, one_m_space)
-        #grid_svg, cell_id_to_coords = SvgManager.draw_grid(self.svg_grid, graph, self.utils, self.spacing)
         grid_svg, cell_id_to_coords = SvgManager.draw_grid_flutter(self.svg_grid, graph, self.utils, self.spacing)
         node_to_cell, cell_to_nodes = memberships_from_drawing(
         graph,
@@ -136,63 +139,6 @@ class App:
         print(f"one cm in svg units: {one_cm_svg}")
         building = ManagerFloor(graph, self.door_points, self.svg_file, grid_svg, self.utils, cell_id_to_coords, cell_to_nodes, node_to_cell, adj, one_cm_svg)
         return building
-        
-    # def createGreedToSvg(self, graph):
-    #     threshold = self.spacing * math.sqrt(2) * 1.1
-    #     # Get graph nodes as Point objects
-    #     graph_points = list(graph.keys())
-    #     if not graph_points:
-    #         return {}
-
-    #     xs = [p[0] for p in graph_points]
-    #     ys = [p[1] for p in graph_points]
-
-    #     min_x, max_x = min(xs), max(xs)
-    #     min_y, max_y = min(ys), max(ys)
-
-    #     # Build KDTree for efficient search
-    #     tree = KDTree(graph_points)
-
-    #     coarse_to_fine = {}
-
-    #     # Step 1: Build coarse grid (2*spacing)
-    #     coarse_spacing = math.floor(100 / self.unit_scale)
-    #     x = round(min_x / coarse_spacing) * coarse_spacing
-    #     count_over = 0
-    #     count_less = 0
-    #     while x <= max_x:
-    #         y = round(min_y / coarse_spacing) * coarse_spacing
-    #         while y <= max_y:
-    #             center = (round(x, 6), round(y, 6))
-    #             indices = tree.query_ball_point(center, threshold)
-    #             if indices:
-    #                 nearby = [graph_points[i] for i in indices]
-    #                 if len(nearby) < 1 or len(nearby) > 25:
-    #                     if len(nearby) > 25:
-    #                         count_over += 1
-    #                     else:
-    #                         count_less += 1
-    #                 coarse_to_fine[center] = nearby
-    #             y += coarse_spacing
-    #         x += coarse_spacing
-    #     print(f"Coarse grid created with {len(coarse_to_fine)} points, {count_over} over 25 points, {count_less} less than 1 point")
-    
-    #     # 1. Gather all fine-level points from the original graph
-    #     fine_points = list(graph.keys())
-
-    #     # 2. Collect every fine point that appears in any coarse_to_fine entry
-    #     mapped_points = {p for fine_list in coarse_to_fine.values() for p in fine_list}
-
-    #     # 3. Find which fine points weren’t mapped to any coarse cell
-    #     unmapped = set(fine_points) - mapped_points
-
-    #     # 4. Report the results
-    #     if unmapped:
-    #         print(f"[WARNING] {len(unmapped)} fine points are not assigned to any coarse cell:")
-    #     else:
-    #         print("All fine points are assigned to at least one coarse cell.")
-
-    #     return coarse_to_fine
 
     def createGreedToSvg(self, graph):
         fine_points = list(graph.keys())
@@ -254,16 +200,7 @@ class App:
         return coarse_to_fine
 
 
-# =========================
-# Big-cell membership (drawing-based)
-# =========================
-import math
-from collections import defaultdict
-from typing import Dict, Tuple, Set, Iterable
 
-Coord = Tuple[float, float]
-CellID = int
-Bounds = Tuple[float, float, float, float]  # (minx, miny, maxx, maxy)
 
 def build_cell_bounds_from_centers(
     cell_id_to_coords: Dict[CellID, Coord],

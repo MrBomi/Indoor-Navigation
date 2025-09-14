@@ -2,7 +2,8 @@
 import svgwrite
 import xml.etree.ElementTree as ET
 from core.Utils import Utils
-
+import math
+import xml.etree.ElementTree as ET
 
 def createSvgDrawing(width, height, all_lines, door_points):
     svg = svgwrite.Drawing(size=(f"{width}px", f"{height}px"))
@@ -13,37 +14,6 @@ def createSvgDrawing(width, height, all_lines, door_points):
         #svg.add(svg.circle(center=(x, y), r=5, fill='red', stroke='black', stroke_width=1))
         #svg.add(svg.text(str(i), insert=(x + 10, y + 10), fill='black', font_size='12px'))
     return svg
-
-# def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
-#     grid_svg = svgwrite.Drawing(size=(f"{utils.width}px", f"{utils.height}px"))
-#     cell_spacing = spacing
-#     cell_size_px = cell_spacing * utils.svg_scale
-
-#     print("🟦 Drawing grid rectangles...")
-#     updated_coarse_to_fine = {}
-#     count = 0
-
-#     for line in all_lines:
-#         coords = [utils.scale(x, y) for x, y in line.coords]
-#         grid_svg.add(grid_svg.polyline(points=coords, stroke='gray', fill='none', stroke_width=0.5))
-
-#     for coarse_pt, fine_pts in coarse_to_fine.items():
-#         x_svg, y_svg = utils.scale(coarse_pt[0], coarse_pt[1])
-
-#         grid_svg.add(grid_svg.rect(
-#             insert=(x_svg - cell_size_px / 2, y_svg - cell_size_px / 2),
-#             size=(cell_size_px, cell_size_px),
-#             fill='blue',
-#             fill_opacity=0.1,
-#             stroke='black',
-#             stroke_width=0.1,
-#             id=f"cell-{round(x_svg, 2)}-{round(y_svg, 2)}"
-#         ))
-
-#         updated_coarse_to_fine[(round(x_svg, 2), round(y_svg, 2))] = fine_pts
-#         count += 1     
-    # print(f"🟦 Done drawing {count} grid squares.")
-    # return grid_svg
 
 def addGridToSvg(all_lines, coarse_to_fine, utils, spacing):
     grid_svg = svgwrite.Drawing(size=(f"{utils.width}px", f"{utils.height}px"))
@@ -211,8 +181,6 @@ def draw_grid1(
 
     return svg, cell_id_to_coords
 
-import math
-
 def draw_grid(
     svg,
     graph,            # dict[(x,y)] -> list[(x,y)]  # unweighted neighbors
@@ -304,7 +272,6 @@ def draw_grid(
             nodes_g.add(svg.circle(center=(cx, cy), r=r))
 
     return svg, cell_id_to_coords
-
 
 def draw_grid_flutter(
     svg,
@@ -420,9 +387,6 @@ def draw_grid_flutter(
 
     return svg, cell_id_to_coords
 
-
-import xml.etree.ElementTree as ET
-
 def rename_doors_in_svg(svg, doors_data):
     SVG_NS = "http://www.w3.org/2000/svg"
     ET.register_namespace("", SVG_NS)
@@ -455,7 +419,6 @@ def rename_doors_in_svg(svg, doors_data):
 
     return ET.tostring(svg_root, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
-
 def highlight_vertices(svg_str: str, vertices: list[int]) -> str:
     """
     Highlight given vertices (rect with id=vertex) in green.
@@ -474,7 +437,6 @@ def highlight_vertices(svg_str: str, vertices: list[int]) -> str:
     
     # Return updated SVG as string
     return ET.tostring(root, encoding="unicode")
-
 
 def create_svg_doors(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=2, color='blue'):
     SVG_NS = "http://www.w3.org/2000/svg"

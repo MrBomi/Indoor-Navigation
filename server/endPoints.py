@@ -13,7 +13,6 @@ import sys
 import server.constants as constants
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import core.ManagerFloor as logicMangerFloor
-from core.predict.predict import Predict
 from server.discord_logs import get_logger
 bp = Blueprint('building', __name__)
 from core.predict.wknn_service import predict_top1 as wknn_predict_top1, predict_topk as wknn_predict_topk
@@ -254,33 +253,6 @@ def add_scan():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-# TODO: need to move to new endpoint file
-@bp.route(constants.START_PREDICT1, methods=['GET'], endpoint='startPredict')
-def start_predict():
-    try:
-        building_id = request.args.get(constants.BUILDING_ID)
-        floor_id = request.args.get(constants.FLOOR_ID)
-        goal = request.args.get('goal')
-        start = request.args.get('start')
-        samples = request.get_json(silent=True)
-        if not building_id or not floor_id or not start or not goal:
-            return jsonify({"error": "Building ID, Floor ID, start, and goal are required"}), 400
-        graph = graph_db_manger.get_graph_from_db(building_id, floor_id)
-        #coarse_to_fine = graph_db_manger.get_coarse_to_fine_from_db(building_id, floor_id)
-        scan_data = floor_db_manger.get_scan_data(building_id, floor_id)
-        coord_to_cell = graph_db_manger.get_json_coord_to_cell(building_id, floor_id)
-        cell_to_coords = graph_db_manger.get_json_cell_to_coords(building_id, floor_id)
-        goal_p = doors_db_manger.get_coordinate_by_name(goal, building_id, floor_id)
-        start_p = floor_db_manger.convert_string_to_float_coordinates(start)
-        start_p = floor_db_manger.svg_to_raw(building_id, floor_id, start_p[0], start_p[1])
-        start_p = (-200,1200)
-        predict = Predict(graph, coord_to_cell, cell_to_coords, scan_data, start_p, goal_p)
-        predict.debug_transition_info(start_p)
-        predict.test(samples)
-        return jsonify({"message": "Prediction completed successfully"}), 200
-    except Exception as e:
-        print(traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
 
 @bp.route(constants.ADD_NEW_SCAN, methods=['POST'], endpoint='uploadScanTable')
 def upload_scan_table():
@@ -375,26 +347,6 @@ def concatenate_scan_tables():
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
     
-@bp.route('/test', methods=['POST'])
-def test_endpoint():
-    data = request.get_json(force=True)
-    graph = graph_db_manger.get_graph_from_db(2, 2)
-    grid = graph_db_manger.get_grid_from_db(2, 2)
-    coord_to_cell = graph_db_manger.get_json_coord_to_cell(2, 2)
-    start_p = doors_db_manger.get_coordinate_by_name("2", 2, 2)
-    goal_p = doors_db_manger.get_coordinate_by_name("59", 2, 2)
-    predict = HMMModel(graph, grid, coord_to_cell, start_p, goal_p)
-    
-    predict.set_dynamic_cells_prob(682)
-    scan_dict   = data.get('featureVector')
-    results = wknn_predict_topk(2, 2, scan_dict, top_k=8)
-    observations = {int(res['label']): res['confidence_norm'] for res in results}
-    cell, conf = predict.viterbi(observations)
-    return jsonify({
-        "cell": cell,
-        "confidence": conf
-    }), 200
-
 @bp.route(constants.PREDICT_TOP5, methods=['POST'], endpoint='predictTop5')
 def predict_top5_endpoint():
     """
@@ -517,32 +469,3 @@ def get_route_list():
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
-
-# @bp.route(constants.START_PREDICT, methods=['POST'], endpoint='addNewModel')
-# def add_new_model():
-#     try:
-#         data = request.get_json(force=True)
-#         building_id = data.get(constants.BUILDING_ID)
-#         floor_id = data.get(constants.FLOOR_ID)
-#         predictId = data.get("sessionId")
-#         #start_p = data.get('start')
-#         #goal_p = data.get('goal')
-#         scan_dict = data.get('featureVector')
-#         if not building_id or not floor_id or not scan_dict:
-#             return jsonify({"error": "Building ID, Floor ID, and featureVector (dict) are required"}), 400
-#         #graph = graph_db_manger.get_graph_from_db(building_id, floor_id)
-#         #grid = graph_db_manger.get_grid_from_db(building_id, floor_id)
-#        coord_to_cell = graph_db_manger.get_json_coord_to_cell(building_id, floor_id)
-#         #start_p_raw = floor_db_manger.convert_string_to_float_coordinates(start_p)
-#         #start_p_raw = floor_db_manger.svg_to_raw(building_id, floor_id, start_p_raw[0], start_p_raw[1])
-#         #end_p = doors_db_manger.get_coordinate_by_name(goal_p, building_id, floor_id)
-#         #predict_id = current_app.config['PREDICT_MANAGER'].add_new_id()
-#         results = wknn_predict_topk(int(building_id), int(floor_id), scan_dict, top_k=1)
-#         cell = results[0]['label']
-#         coord = graph_db_manger.get_coord_from_cell(building_id, floor_id, int(cell))
-#         svg_coord = floor_db_manger.raw_to_svg(coord, building_id, floor_id)
-#         #predict_id = predict_manager.add_new_model(graph, grid, coord_to_cell, start_p_raw, end_p)
-#         return jsonify({"svgX": svg_coord[0], "svgY": svg_coord[1], "label": cell}), 200
-#     except Exception as e:
-#         print(traceback.format_exc())
-#         return jsonify({"error": str(e)}), 500
