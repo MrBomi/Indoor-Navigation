@@ -130,7 +130,6 @@ def update_grid_svg_data(building_id: int, floor_id: int, grid_svg: str) -> bool
         db.session.rollback()
         return False
 
-#TODO: omri need to fix
 def getNewBuildingId():
     try:
         last_building = Building.query.order_by(Building.id.desc()).first()

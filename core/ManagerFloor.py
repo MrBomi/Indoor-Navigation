@@ -146,15 +146,6 @@ class ManagerFloor:
         for i, pt in enumerate(door_points):
             self.doors_data[i] = Door(i, pt.x, pt.y, utils.scale(pt.x, pt.y))
 
-    # def crete_door_json(self):
-    #     doors_json = []
-    #     for i, pt in enumerate(self.door_points):
-    #         self.doors_data[i] = Door(i, pt.x, pt.y)
-    #         #x, y = self.utils.scale(pt.x, pt.y)
-    #         x, y = self.scale(pt.x, pt.y)
-    #         doors_json.append({"id": i, "x": x, "y": y})
-    #     return doors_json
-
     def create_door_json(self):
         doors_json = []
         for i, door in self.doors_data.items():
@@ -212,9 +203,6 @@ class ManagerFloor:
         self.doors_data = new_data 
 
     def getPath(self, start, goal):
-        # startPoint = self.doors_data.get(start).getPoint()
-        # goalPoint = self.doors_data.get(goal).getPoint()
-
         start_p = self.doors_data.get(start).getCoordinates()
         goal_p = self.doors_data.get(goal).getCoordinates()
         path = self.find_path(start_p, goal_p)
@@ -284,23 +272,6 @@ def scale(x, y, x_min_raw, x_max_raw, y_min_raw, y_max_raw):
     return norm_x * 800, (1 - norm_y) * 800  # flipped Y to match SVG view
 
 def draw_path(svg, path, x_min_raw, x_max_raw, y_min_raw, y_max_raw, color='red', stroke_width=2):
-    # SVG_NS = "http://www.w3.org/2000/svg"
-    # ET.register_namespace("", SVG_NS)
-
-    # scaled_path = [scale(x, y, x_min_raw, x_max_raw, y_min_raw, y_max_raw) for x, y in path]
-    # svg_root = ET.fromstring(svg)
-
-    # points_str = " ".join(f"{x},{y}" for x, y in scaled_path)
-    # path_element = ET.Element(f"{{{SVG_NS}}}polyline", {
-    #     'points': points_str,
-    #     'stroke': color,
-    #     'stroke-width': str(stroke_width),
-    #     'fill': 'none',
-    #     'id': 'path'
-    # })
-
-    # svg_root.append(path_element)
-    # return ET.tostring(svg_root, encoding='utf-8', xml_declaration=True).decode('utf-8')
     return SvgManager.draw_path_in_svg(svg, path, x_min_raw, x_max_raw, y_min_raw, y_max_raw, color, stroke_width)
 
 def get_svg_with_path(svg, graph, start, goal, x_min_raw, x_max_raw, y_min_raw, y_max_raw):
@@ -310,33 +281,4 @@ def get_svg_with_path(svg, graph, start, goal, x_min_raw, x_max_raw, y_min_raw, 
     return draw_path(svg, path, x_min_raw, x_max_raw, y_min_raw, y_max_raw)
 
 def update_svg_door_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius=4, color='blue'):
-    # SVG_NS = "http://www.w3.org/2000/svg"
-    # ET.register_namespace("", SVG_NS)
-
-    # svg_root = ET.fromstring(svg)
-
-    # for door in doors_data:
-    #     x, y = scale(door["x"], door["y"], x_min_raw, x_max_raw, y_min_raw, y_max_raw)
-    #     name = door.get("name", f"Door {door['id']}")
-
-    #     circle = ET.SubElement(svg_root, f"{{{SVG_NS}}}circle", {
-    #         'cx': str(x),
-    #         'cy': str(y),
-    #         'r': str(radius),
-    #         'fill': color,
-    #         'stroke': 'black',
-    #         'stroke-width': '1',
-    #         'id': f'door-{door["id"]}'
-    #     })
-
-    #     text = ET.SubElement(svg_root, f"{{{SVG_NS}}}text", {
-    #         'x': str(x),
-    #         'y': str(y - radius - 2),
-    #         'font-size': "10",
-    #         'fill': "black",
-    #         'text-anchor': "middle"
-    #     })
-    #     text.text = name
-
-    # return ET.tostring(svg_root, encoding='utf-8', xml_declaration=True).decode('utf-8')
     return SvgManager.update_doors_names(svg, doors_data, x_min_raw, x_max_raw, y_min_raw, y_max_raw, radius, color)

@@ -169,18 +169,7 @@ class GeometryExtractor:
         return (insert[0], insert[1])
 
     def generate_quantized_grid(self,geometry, spacing):
-        # minx, miny, maxx, maxy = geometry.bounds
-        # result = []
-        # x = round(minx // spacing) * spacing
-        # while x <= maxx:
-        #     y = round(miny // spacing) * spacing
-        #     while y <= maxy:
-        #         pt = Point(x, y)
-        #         if geometry.contains(pt):
-        #             result.append(pt)
-        #         y += spacing
-        #     x += spacing
-        # return result
+
         if spacing <= 0:
             raise ValueError("spacing must be positive")
 

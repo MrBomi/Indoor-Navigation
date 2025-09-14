@@ -34,39 +34,6 @@ def is_blocked(x, y, bitmap, minx, miny, spacing):
         return bitmap[row, col] == 1
     return True
 
-# def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5):
-#     graph = defaultdict(list)
-#     directions = [
-#     ( spacing,  0), (-spacing,  0), (0,  spacing), (0, -spacing)]
-
-#     # Step 1: Create bitmap
-#     wall_thickness = spacing * wall_thickness_ratio
-#     bitmap, minx, miny, rows, cols = create_bitmap_from_walls(wall_lines, spacing, wall_thickness)
-
-#     # Step 2: Build graph from grid
-#     for pt in grid_points:
-#         x1, y1 = pt.x, pt.y
-#         if is_blocked(x1, y1, bitmap, minx, miny, spacing):
-#             continue
-#         for dx, dy in directions:
-#             x2, y2 = x1 + dx, y1 + dy
-#             if not is_blocked(x2, y2, bitmap, minx, miny, spacing):
-#                 graph[(x1, y1)].append((x2, y2))
-#                 graph[(x2, y2)].append((x1, y1))
-
-#     # Step 3: Connect doors to grid
-#     for door in door_points:
-#         door_key = (door.x, door.y)
-#         graph[door_key] = []
-#         for pt in grid_points:
-#             x, y = pt.x, pt.y
-#             if not is_blocked(x, y, bitmap, minx, miny, spacing) and Point(x, y).distance(door) <= spacing * 1.5:
-#                 graph[door_key].append((x, y))
-#                 graph[(x, y)].append(door_key)
-
-#     #visualize_bitmap(bitmap)
-
-#     return graph
 
 def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_thickness_ratio=0.5, use_weights=False):
     """
@@ -147,6 +114,7 @@ def build_graph_with_bitmap(grid_points, door_points, wall_lines, spacing, wall_
                     add_edge((x, y), door_key)
 
     return graph
+
 def visualize_bitmap(bitmap, title="Bitmap Visualization"):
     plt.figure(figsize=(10, 10))
     plt.imshow(bitmap, cmap='gray_r', origin='upper')
