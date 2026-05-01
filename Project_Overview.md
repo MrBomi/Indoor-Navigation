@@ -1,6 +1,6 @@
 # Project Overview
 
-## Opening (10-15 sec)
+## Overview
 - Indoor GPS fails indoors.
 - We built indoor positioning + navigation.
 - Users get stable live location and route guidance.
@@ -53,6 +53,3 @@
 - Measure latency per endpoint.
 - Move heavy artifacts to object storage.
 - Keep SQL for relational metadata.
-
-## Closing (10 sec)
-- MVP worked well.
